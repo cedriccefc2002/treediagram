@@ -2,6 +2,8 @@
 
 一個可讓客端透過API編輯樹狀圖(tree diagram)的網路服務
 
+![連線測試](doc/img/run.png)
+
 ## Neo4j 資料庫安裝
 
 1. 使用 **docker** 安裝資料儲存目錄設定為`/home/cefc/Data/neo4j`
