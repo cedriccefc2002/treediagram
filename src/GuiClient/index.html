@@ -10,6 +10,7 @@
     <h1>Ice Test</h1>
     <input type="text" id="data" value="Hello" />
     <button onclick="saveData()">送出</button>
+    <input type="text" id="resut" value="" />
     <script>
         const Ice = require("ice").Ice;
         const TreeDiagram = require("./Ice/Node").TreeDiagram;
@@ -20,7 +21,7 @@
                 const base = ic.stringToProxy("Node:default -h localhost -p 10000");
                 const node = await TreeDiagram.NodePrx.checkedCast(base);
                 if (node) {
-                    await node.saveData(document.getElementById("data").value);
+                    document.getElementById("resut").value = await node.saveData(document.getElementById("data").value);
                 }
                 else {
                     console.log("Invalid proxy");
