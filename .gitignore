@@ -328,3 +328,11 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+#Ice 自動產生檔案
+src/Server/generated/*.cs
+src/Server/generated/*.d
+
+# vscode 除錯設定
+**/*/.vscode/tasks.json
+**/*/.vscode/launch.json
