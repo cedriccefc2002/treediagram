@@ -115,7 +115,7 @@ npm install @types/electron --save-dev
 ### 編譯 Slice
 
 ```sh
-slice2js -I./src/Slice/ --output-dir ./src/GuiClient/Ice ./src/GuiClient/Node.ice
+slice2js -I./src/Slice/ --output-dir ./src/GuiClient/Ice ./src/Slice/Node.ice
 ```
 
 ### GuiClient 專案編譯
