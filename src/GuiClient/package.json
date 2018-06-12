@@ -1,0 +1,30 @@
+{
+  "name": "treediagram-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "gui": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cedriccefc2002/treediagram.git"
+  },
+  "author": "曾德雄<cedriccefc2002@gmail.com>",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/cedriccefc2002/treediagram/issues"
+  },
+  "homepage": "https://github.com/cedriccefc2002/treediagram#readme",
+  "dependencies": {
+    "ice": "^3.7.1"
+  },
+  "devDependencies": {
+    "@types/electron": "^1.6.10",
+    "electron": "2.0.2",
+    "tslint": "^5.10.0",
+    "typescript": "^2.9.1"
+  }
+}

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ice Test</title>
+</head>
+
+<body>
+    <h1>Ice Test</h1>
+    <input type="text" id="data" value="Hello" />
+    <button onclick="saveData()">送出</button>
+    <script>
+        const Ice = require("ice").Ice;
+        const TreeDiagram = require("./Ice/Node").TreeDiagram;
+        async function saveData() {
+            let ic;
+            try {
+                ic = Ice.initialize();
+                const base = ic.stringToProxy("Node:default -h localhost -p 10000");
+                const node = await TreeDiagram.NodePrx.checkedCast(base);
+                if (node) {
+                    await node.saveData(document.getElementById("data").value);
+                }
+                else {
+                    console.log("Invalid proxy");
+                }
+            }
+            catch (ex) {
+                console.error(ex);
+                //     process.exitCode = 1;
+            }
+            finally {
+                if (ic) {
+                    await ic.destroy();
+                }
+            }
+        };
+    </script>
+</body>
+
+</html>

@@ -332,7 +332,13 @@ ASALocalRun/
 #Ice 自動產生檔案
 src/Server/generated/*.cs
 src/Server/generated/*.d
+src/ConsoleClient/generated/*.d
+src/ConsoleClient/generated/*.cs
 
 # vscode 除錯設定
 **/*/.vscode/tasks.json
 **/*/.vscode/launch.json
+
+# GuiClient
+src/GuiClient/package-lock.json
+src/GuiClient/**/*.js

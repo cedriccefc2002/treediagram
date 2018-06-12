@@ -23,7 +23,7 @@ sudo apt-get install zeroc-ice-compilers
 
 ## Server 專案
 
-### 專案建置
+### Server 專案建置
 
 ```sh
 dotnet new console -o src/Server
@@ -41,13 +41,13 @@ dotnet add src/Server package Neo4j.Driver
 </Project>
 ```
 
-### 專案編譯
+### Server 專案編譯
 
 ```sh
 dotnet build src/Server
 ```
 
-### 專案發布：win-x64，win-x8，linux-x64
+### Server 專案發布：win-x64，win-x8，linux-x64
 
 ```sh
 # 輸出目錄到 src/Server/bin/Release/netcoreapp2.1/win-x64
@@ -58,7 +58,7 @@ dotnet publish --self-contained -c Release -r win-x86 src/Server
 dotnet publish --self-contained -c Release -r linux-x64 src/Server
 ```
 
-### 專案執行：
+### Server 專案執行：
 
 ```sh
 # 執行 linux-x64
@@ -67,4 +67,102 @@ dotnet publish --self-contained -c Release -r linux-x64 src/Server
 ./src/Server/bin/Release/netcoreapp2.1/win-x64/Server.exe
 # 執行 win-x86
 ./src/Server/bin/Release/netcoreapp2.1/win-x86/Server.exe
+```
+
+## ConsoleClient 專案
+
+```sh
+dotnet new console -o src/ConsoleClient
+dotnet add src/ConsoleClient package zeroc.icebuilder.msbuild
+dotnet add src/ConsoleClient package zeroc.ice.net
+```
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <SliceCompile Include="../Slice/*.ice" />
+    </ItemGroup>
+</Pro
+```
+
+### ConsoleClient 專案編譯
+
+```sh
+dotnet build src/ConsoleClient
+```
+
+## GuiClient 專案
+
+### GuiClient 專案建置
+
+```sh
+cd ./src/GuiClient
+npm init
+npm install ice --save
+npm install typescript --save-dev
+npm install tslint --save-dev
+npm install electron --save-dev --save-exact
+npm install @types/electron --save-dev
+# 初始化 typescript 設定
+./node_modules/.bin/tsc --init
+# 初始化 tslint 設定
+./node_modules/.bin/tslint --init
+```
+
+### 編譯 Slice
+
+```sh
+slice2js -I./src/Slice/ --output-dir ./src/GuiClient/Ice ./src/GuiClient/Node.ice
+```
+
+### GuiClient 專案編譯
+
+```sh
+cd ./src/GuiClient
+npm run build
+```
+
+### GuiClient 專案執行：
+
+```sh
+cd ./src/GuiClient
+npm run gui
+```
+
+### ice 模組在 `electron renderer process` 執行時發生的問題
+
+由於 `./node_modules/ice/src/Ice/Timer.js` 有[非法調用](https://stackoverflow.com/questions/9677985/uncaught-typeerror-illegal-invocation-in-chrome)的問題
+所以必須修改所有bind的原生函數進行修改
+
+```js
+const id = Timer.setTimeout(() => this.handleTimeout(token), delay);
+
+const id = Timer.setInterval(() => this.handleInterval(token), period);
+
+if(token.isInterval)
+{
+    Timer.clearInterval(token.id);
+}
+else
+{
+    Timer.clearTimeout(token.id);
+}
+```
+
+變成
+
+```js
+const id = Timer.setTimeout.call(window,() => this.handleTimeout(token), delay);
+
+const id = Timer.setInterval.call(window,() => this.handleInterval(token), period);
+
+if(token.isInterval)
+{
+    Timer.clearInterval.call(window, token.id);
+}
+else
+{
+    Timer.clearTimeout.call(window, token.id);
+}
 ```
