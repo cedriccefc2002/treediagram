@@ -6,22 +6,39 @@
     <title>Ice Test</title>
 </head>
 
-<body>
+<body onload="status()">
     <h1>Ice Test</h1>
-    <input type="text" id="data" value="Hello" />
-    <button onclick="saveData()">送出</button>
-    <input type="text" id="resut" value="" />
+    <!-- <input type="text" id="data" value="Hello" />
+    <button onclick="status()">送出</button>
+    <input type="text" id="resut" value="" /> -->
     <script>
+        const path = require("path");
+        require('module').globalPaths.push(path.join(process.cwd(), "Ice"));
         const Ice = require("ice").Ice;
-        const TreeDiagram = require("./Ice/Node").TreeDiagram;
-        async function saveData() {
+        const TreeDiagram = require("./Ice/Server").TreeDiagram;
+        async function setImmediateAsync() {
+            return new Promise((resulve, reject) => {
+                setImmediate(resulve);
+            })
+        } async function setTimeoutAsync(timeout) {
+            return new Promise((resulve, reject) => {
+                setTimeout(resulve, timeout);
+            })
+        }
+        async function status() {
             let ic;
             try {
                 ic = Ice.initialize();
-                const base = ic.stringToProxy("Node:default -h localhost -p 10000");
-                const node = await TreeDiagram.NodePrx.checkedCast(base);
-                if (node) {
-                    document.getElementById("resut").value = await node.saveData(document.getElementById("data").value);
+                const base = ic.stringToProxy("Server:default -h localhost -p 10000");
+                const server = await TreeDiagram.ServerPrx.checkedCast(base);
+                if (server) {
+                    // document.getElementById("data").value
+                    // document.getElementById("resut").value = await server.status();
+                    while (true) {
+                        await setTimeoutAsync(100);
+                        let status = await server.status();
+                        // console.log();
+                    }
                 }
                 else {
                     console.log("Invalid proxy");

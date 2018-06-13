@@ -21,5 +21,31 @@ namespace Server.lib.Service
             var task = statusAsync();
             return task.Result;
         }
+
+        public override void createTree(Tree tree, Ice.Current current)
+        {
+            _logger.LogInformation("");
+        }
+
+        public override Tree[] readTree(Ice.Current current)
+        {
+            _logger.LogInformation("");
+            return new Tree[] { new Tree() };
+        }
+
+        public override Tree readSingleTree(string uuid, Ice.Current current)
+        {
+            _logger.LogInformation("");
+            return new Tree() { uuid = uuid };
+        }
+        public override void updateTree(Tree tree, Ice.Current current)
+        {
+            _logger.LogInformation("");
+        }
+
+        public override void deleteTree(string uuid, Ice.Current current)
+        {
+            _logger.LogInformation("");
+        }
     }
 }

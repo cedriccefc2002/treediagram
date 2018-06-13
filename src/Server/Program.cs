@@ -18,7 +18,7 @@ namespace Server
             using (Ice.Communicator communicator = Ice.Util.initialize())
             {
                 var adapter = communicator.createObjectAdapterWithEndpoints("TreeDiagramAdapter", "default -h localhost -p 10000");
-                adapter.add(serviceProvider.GetRequiredService<Service.NodeService>(), Ice.Util.stringToIdentity("Node"));
+                // adapter.add(serviceProvider.GetRequiredService<Service.NodeService>(), Ice.Util.stringToIdentity("Node"));
                 adapter.add(serviceProvider.GetRequiredService<Service.ServerService>(), Ice.Util.stringToIdentity("Server"));
                 adapter.activate();
                 await Task.Factory.StartNew(() =>

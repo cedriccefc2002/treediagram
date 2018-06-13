@@ -126,7 +126,14 @@ npm install @types/electron --save-dev
 ### 編譯 Slice
 
 ```sh
-slice2js -I./src/Slice/ --output-dir ./src/GuiClient/Ice ./src/Slice/Node.ice
+slice2js -I./src/Slice/ --output-dir ./src/GuiClient/Ice ./src/Slice/*.ice
+```
+
+當有使用 `#include` 指令時需要增加匯入路徑
+
+```js
+const path = require("path");
+require('module').globalPaths.push(path.join(process.cwd(), "Ice"));
 ```
 
 ### GuiClient 專案編譯

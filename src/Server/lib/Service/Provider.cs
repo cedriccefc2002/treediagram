@@ -15,7 +15,7 @@ namespace Server.lib.Service
         {
             services = new ServiceCollection();
             services.AddSingleton<ServerService>();
-            services.AddSingleton<NodeService>();
+            // services.AddSingleton<NodeService>();
         }
         public static IServiceProvider Init(string logPath = "nlog.config")
         {

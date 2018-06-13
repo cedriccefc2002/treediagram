@@ -1,8 +1,9 @@
 module TreeDiagram
 {
     // 節點可儲存資料 (string)
-    interface Node
+    class Node
     {
-        string saveData(string data);
+        string uuid;
+        string data;
     }
 }
