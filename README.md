@@ -168,3 +168,113 @@ else
     Timer.clearTimeout.call(window, token.id);
 }
 ```
+
+## 已知問題：
+
+1. 複寫呼叫**Ice**產生物件的方法是非同步的，如果裡面有用到`Neo4j.Driver.V1.ISession`的`WriteTransactionAsync`的**async**方法，會導致**Block**無回應
+
+    使用`Task.Run`+`WriteTransaction`可以運作
+    ```cs
+    public override string saveData(string message, Ice.Current current)
+    {
+        Task<string> task = Task<string>.Run(async () =>
+        {
+            await Task.Delay(0);
+            using (var session = _driver.Session())
+            {
+                var result = session.WriteTransaction((tx) =>
+                {
+                    var result1 = tx.Run(@"
+                        CREATE (a:Greeting) SET a.message = $message 
+                        RETURN a.message + ', from node ' + id(a)
+                    ", new { message });
+                    return (result1.Single())[0].As<string>();
+                });
+                return result;
+            }
+        });
+        task.Wait();
+        return task.Result;
+    }
+    ```
+
+    使用`Task.Run`+`WriteTransactionAsync`可以運作
+    ```cs
+    public override string saveData(string message, Ice.Current current)
+    {
+        Task<string> task = Task<string>.Run(async () =>
+        {
+            await Task.Delay(0);
+            using (var session = _driver.Session())
+            {
+                var result = await session.WriteTransactionAsync(async (tx) =>
+                {
+                    await Task.Delay(0);
+                    var result1 = await tx.RunAsync(@"
+                        CREATE (a:Greeting) SET a.message = $message 
+                        RETURN a.message + ', from node ' + id(a)
+                    ", new { message });
+                    return (await result1.SingleAsync())[0].As<string>();
+                });
+                return result;
+            }
+        });
+        task.Wait();
+        return task.Result;
+    }
+    ```
+    使用`async function`+`WriteTransaction`可以運作
+    ```cs
+    private async Task<string> SaveDataAsync(string message)
+    {
+        await Task.Delay(0);
+        using (var session = _driver.Session())
+        {
+            var result = session.WriteTransaction((tx) =>
+            {
+                var result1 = tx.Run(@"
+                        CREATE (a:Greeting) SET a.message = $message 
+                        RETURN a.message + ', from node ' + id(a)
+                    ", new { message });
+                return (result1.Single())[0].As<string>();
+            });
+            return result;
+        }
+    }
+
+    public override string saveData(string message, Ice.Current current)
+    {
+        var task = SaveDataAsync(message);
+        task.Wait();
+        return task.Result;
+    }
+    ```
+
+    使用`async function`+`WriteTransactionAsync`會導致**Block**無回應
+    ```cs
+    private async Task<string> SaveDataAsync(string message)
+    {
+        await Task.Delay(0);
+        using (var session = _driver.Session())
+        {
+            // 無回應
+            var result = await session.WriteTransactionAsync(async (tx) =>
+                    {
+                        await Task.Delay(0);
+                        var result1 = await tx.RunAsync(@"
+                        CREATE (a:Greeting) SET a.message = $message 
+                        RETURN a.message + ', from node ' + id(a)
+                    ", new { message });
+                        return (await result1.SingleAsync())[0].As<string>();
+                    });
+            return result;
+        }
+    }
+
+    public override string saveData(string message, Ice.Current current)
+    {
+        var task = SaveDataAsync(message);
+        task.Wait();
+        return task.Result;
+    }
+    ```
