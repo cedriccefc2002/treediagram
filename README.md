@@ -32,6 +32,10 @@ dotnet new console -o src/Server
 dotnet add src/Server package zeroc.icebuilder.msbuild
 dotnet add src/Server package zeroc.ice.net
 dotnet add src/Server package Neo4j.Driver
+# NLog
+dotnet add src/Server package Microsoft.Extensions.DependencyInjection
+dotnet add src/Server package NLog
+dotnet add src/Server package NLog.Extensions.Logging
 ```
 
 ```xml
@@ -40,6 +44,13 @@ dotnet add src/Server package Neo4j.Driver
     <ItemGroup>
         <SliceCompile Include="../Slice/*.ice" />
     </ItemGroup>
+    <!--複製設定檔案-->
+    <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+        <Copy SourceFiles="nlog.config" DestinationFolder="$(OutDir)" />
+    </Target>
+    <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
+        <Copy SourceFiles="nlog.config" DestinationFolder="$(PublishDir)" />
+    </Target>
 </Project>
 ```
 
@@ -170,6 +181,8 @@ else
 ```
 
 ## 已知問題：
+
+1. **Ice**框架讓Server主動推播資料到Client?
 
 1. 複寫呼叫**Ice**產生物件的方法是非同步的，如果裡面有用到`Neo4j.Driver.V1.ISession`的`WriteTransactionAsync`的**async**方法，會導致**Block**無回應
 

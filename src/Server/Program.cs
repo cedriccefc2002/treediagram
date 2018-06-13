@@ -3,119 +3,28 @@ using System.Threading.Tasks;
 using System.Linq;
 using Neo4j.Driver.V1;
 using System.Threading;
+using Service = Server.lib.Service;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Server
 {
-    class Node : TreeDiagram.NodeDisp_
-    {
-        private readonly IDriver _driver = GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "12369874"));
 
-        private async Task<string> SaveDataAsync(string message)
-        {
-            await Task.Delay(0);
-            using (var session = _driver.Session())
-            {
-                // 使用`async function`+`WriteTransaction`可以運作
-                var result = session.WriteTransaction((tx) =>
-                {
-                    var result1 = tx.Run(@"
-                            CREATE (a:Greeting) SET a.message = $message 
-                            RETURN a.message + ', from node ' + id(a)
-                        ", new { message });
-                    return (result1.Single())[0].As<string>();
-                });
-                return result;
-                // 使用`async function`+`WriteTransactionAsync`會導致**Block**無回應
-                // var result = await session.WriteTransactionAsync(async (tx) =>
-                //     {
-                //         await Task.Delay(0);
-                //         var result1 = await tx.RunAsync(@"
-                //             CREATE (a:Greeting) SET a.message = $message 
-                //             RETURN a.message + ', from node ' + id(a)
-                //         ", new { message });
-                //         return (await result1.SingleAsync())[0].As<string>();
-                //     });
-                // return result;
-            }
-        }
-
-        public override string saveData(string message, Ice.Current current)
-        {
-            var task = SaveDataAsync(message);
-            task.Wait();
-            return task.Result;
-
-            // 使用`Task.Run`+`WriteTransactionAsync`可以運作
-            // Task<string> task = Task<string>.Run(async () =>
-            // {
-            //     await Task.Delay(0);
-            //     using (var session = _driver.Session())
-            //     {
-            //         var result = await session.WriteTransactionAsync(async (tx) =>
-            //         {
-            //             await Task.Delay(0);
-            //             var result1 = await tx.RunAsync(@"
-            //                 CREATE (a:Greeting) SET a.message = $message 
-            //                 RETURN a.message + ', from node ' + id(a)
-            //             ", new { message });
-            //             return (await result1.SingleAsync())[0].As<string>();
-            //         });
-            //         return result;
-            //     }
-            // });
-            // task.Wait();
-            // return task.Result;
-
-            // 使用`Task.Run`+`WriteTransaction`可以運作
-            // Task<string> task = Task<string>.Run(async () =>
-            // {
-            //     await Task.Delay(0);
-            //     using (var session = _driver.Session())
-            //     {
-            //         var result = session.WriteTransaction((tx) =>
-            //         {
-            //             var result1 = tx.Run(@"
-            //                 CREATE (a:Greeting) SET a.message = $message 
-            //                 RETURN a.message + ', from node ' + id(a)
-            //             ", new { message });
-            //             return (result1.Single())[0].As<string>();
-            //         });
-            //         return result;
-            //     }
-            // });
-            // task.Wait();
-            // return task.Result;
-            // 直接執行
-            // using (var session = _driver.Session())
-            // {
-            //     var result = session.WriteTransaction((tx) =>
-            //         {
-            //             var result1 = tx.Run(@"
-            //                 CREATE (a:Greeting) SET a.message = $message 
-            //                 RETURN a.message + ', from node ' + id(a)
-            //             ", new { message });
-            //             return (result1.Single())[0].As<string>();
-            //         });
-            //     return result;
-            // }
-        }
-    }
     public class Program
     {
-        private readonly static IDriver _driver = GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "12369874"));
-        private async static Task StartIceServer()
+        private async static Task StartIceServer(IServiceProvider serviceProvider)
         {
             await Task.Delay(0);
-            Console.WriteLine("IceServer Start");
             using (Ice.Communicator communicator = Ice.Util.initialize())
             {
                 var adapter = communicator.createObjectAdapterWithEndpoints("TreeDiagramAdapter", "default -h localhost -p 10000");
-                adapter.add(new Node(), Ice.Util.stringToIdentity("Node"));
+                adapter.add(serviceProvider.GetRequiredService<Service.NodeService>(), Ice.Util.stringToIdentity("Node"));
+                adapter.add(serviceProvider.GetRequiredService<Service.ServerService>(), Ice.Util.stringToIdentity("Server"));
                 adapter.activate();
                 await Task.Factory.StartNew(() =>
                 {
                     communicator.waitForShutdown();
-                    Console.WriteLine("IceServer Stop");
+                    // Console.WriteLine("IceServer Stop");
                 });
             }
         }
@@ -141,7 +50,8 @@ namespace Server
         {
             try
             {
-                Task iceServerTask = StartIceServer();
+                IServiceProvider serviceProvider = Service.Provider.Init();
+                Task iceServerTask = StartIceServer(serviceProvider);
                 // SaveData("s").Wait();
                 Console.WriteLine("按下任意鍵停止");
                 Console.ReadKey();
