@@ -26,6 +26,33 @@ namespace Server.lib.Repository
             });
         }
 
+        /*
+        MATCH 
+            (u:Tree {uuid:'4b9f5d70-6fb1-11e8-a86b-d1aef71b8da5'}), 
+            (r:Tree {uuid:'4a7cd670-6fb1-11e8-a86b-d1aef71b8da5'})
+        CREATE (u)-[:Root]->(r)
+        
+        https://gist.github.com/jexp/5c1092933781ec4ea2a3
+        CREATE (r:root)
+        FOREACH (i IN range(1,5)|
+            CREATE (r)-[:PARENT]->(c:child { id:i }));
+
+        MATCH (c:child)
+            FOREACH (j IN range(1,5)|
+                CREATE (c)-[:PARENT]->(:child { id:c.id*10+j }));
+
+        match (n)-[r]-()
+            return count(distinct n) as nodes, count(distinct r) as rels
+        
+        MATCH p = (:root)-[r*]->(x)
+        WITH collect(DISTINCT id(x)) as nodes, [r in collect(distinct last(r)) | [id(startNode(r)),id(endNode(r))]] as rels
+        RETURN size(nodes),size(rels), nodes, rels
+
+        MATCH p = (:root)-[r*0..]->(x)
+        WITH collect(DISTINCT id(x)) as nodes, [r in collect(distinct last(r)) | [id(startNode(r)),id(endNode(r))]] as rels
+        RETURN size(nodes),size(rels), nodes, rels
+        
+         */
         public async Task<bool> DeleteTree(string uuid)
         {
             try
@@ -36,8 +63,9 @@ namespace Server.lib.Repository
                     var count = session.WriteTransaction((tx) =>
                     {
                         var result = tx.Run(@"
-                            MATCH (tree: Tree) WHERE tree.uuid = $uuid
-                            DELETE tree
+                            MATCH (tree: Tree { uuid: $uuid})
+                            OPTIONAL MATCH (tree)-[r]-() 
+                            DELETE tree, r
                             RETURN count(tree)
                         ", new { uuid });
                         return (result.Single())[0].As<uint>();
@@ -49,7 +77,7 @@ namespace Server.lib.Repository
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
-                return true;
+                return false;
             }
         }
         public async Task<bool> CreateTree(Domain.TreeDomain tree)
@@ -81,7 +109,7 @@ namespace Server.lib.Repository
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
-                return true;
+                return false;
             }
         }
         public async Task<List<Domain.TreeDomain>> ListAllTrees()
