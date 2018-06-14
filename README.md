@@ -36,6 +36,10 @@ dotnet add src/Server package Neo4j.Driver
 dotnet add src/Server package Microsoft.Extensions.DependencyInjection
 dotnet add src/Server package NLog
 dotnet add src/Server package NLog.Extensions.Logging
+# Configuration
+dotnet add src/Server package Microsoft.Extensions.Configuration
+dotnet add src/Server package Microsoft.Extensions.Configuration.FileExtensions
+dotnet add src/Server package Microsoft.Extensions.Configuration.Json
 ```
 
 ```xml
@@ -50,6 +54,13 @@ dotnet add src/Server package NLog.Extensions.Logging
     </Target>
     <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
         <Copy SourceFiles="nlog.config" DestinationFolder="$(PublishDir)" />
+    </Target>
+    <!--複製appsettings.json設定檔案-->
+    <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+        <Copy SourceFiles="appsettings.json" DestinationFolder="$(OutDir)" />
+    </Target>
+    <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
+        <Copy SourceFiles="appsettings.json" DestinationFolder="$(PublishDir)" />
     </Target>
 </Project>
 ```

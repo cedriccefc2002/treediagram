@@ -18,6 +18,9 @@
   <!--套件-->
   <ItemGroup>
     <!-- NLog -->
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.0" />
     <PackageReference Include="NLog" Version="4.5.6" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.1.0" />
@@ -34,6 +37,14 @@
   </Target>
   <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
     <Copy SourceFiles="nlog.config" DestinationFolder="$(PublishDir)" />
+  </Target>
+
+  <!--複製appsettings.json設定檔案-->
+  <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+    <Copy SourceFiles="appsettings.json" DestinationFolder="$(OutDir)" />
+  </Target>
+  <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
+    <Copy SourceFiles="appsettings.json" DestinationFolder="$(PublishDir)" />
   </Target>
 
 </Project>

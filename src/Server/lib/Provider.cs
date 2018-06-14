@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 
-namespace Server.lib.Service
+namespace Server.lib
 {
     public static class Provider
     {
@@ -16,18 +16,22 @@ namespace Server.lib.Service
         {
             services = new ServiceCollection();
             AddService(services);
+            AddLogger(services);
             services.AddLogging((builder) => builder.SetMinimumLevel(LogLevel.Trace));
             serviceProvider = services.BuildServiceProvider();
             ConfigLog(serviceProvider);
         }
         private static void AddService(ServiceCollection services)
         {
-            services.AddSingleton<ServerService>();
+            services.AddSingleton<Service.ServerService>();
             // services.AddSingleton<NodeService>();
-
+        }
+        private static void AddLogger(ServiceCollection services)
+        {
             services.AddSingleton<ILoggerFactory, LoggerFactory>();
             services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
         }
+
         public static void ConfigLog(IServiceProvider serviceProvider, string logPath = "nlog.config")
         {
             var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
@@ -38,5 +42,4 @@ namespace Server.lib.Service
             NLog.LogManager.LoadConfiguration(logPath);
         }
     }
-
 }
