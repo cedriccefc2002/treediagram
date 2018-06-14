@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Neo4j.Driver.V1;
@@ -16,22 +17,28 @@ namespace Server.lib.Repository
             _logger = logger;
             var config = Neo4jConfig.Config;
             _logger.LogInformation($"{config.uri}|{config.username}");
-            _driver = GraphDatabase.Driver(config.uri, AuthTokens.Basic(config.username, config.password));
+            _driver = GraphDatabase.Driver(config.uri, AuthTokens.Basic(config.username, config.password), new Neo4j.Driver.V1.Config
+            {
+                // Failed after retried for 3 times in 5000 ms
+                MaxTransactionRetryTime = TimeSpan.FromSeconds(5),
+                ConnectionTimeout = TimeSpan.FromSeconds(1)
+            });
         }
 
         public async Task<bool> Status()
         {
             try
             {
-                _logger.LogInformation("Status");
+
                 await Task.Delay(0);
                 using (var session = _driver.Session())
                 {
-                    // session.WriteTransaction((tx) =>
-                    // {
-                    //     var result = tx.Run(@"");
-                    //     return result.Summary;
-                    // });
+                    var summary = session.WriteTransaction((tx) =>
+                    {
+                        var result = tx.Run(@"RETURN datetime()");
+                        return (result.Single())[0].As<string>();
+                    });
+                    _logger.LogInformation(summary);
                     return true;
                 }
             }
