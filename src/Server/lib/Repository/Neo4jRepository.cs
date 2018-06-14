@@ -52,6 +52,14 @@ namespace Server.lib.Repository
         WITH collect(DISTINCT id(x)) as nodes, [r in collect(distinct last(r)) | [id(startNode(r)),id(endNode(r))]] as rels
         RETURN size(nodes),size(rels), nodes, rels
         
+        https://stackoverflow.com/questions/27989740/deleting-a-tree-of-nodes-using-cypher
+        
+        MATCH ()<-[r1*0..1]-(a)<-[rels*]-(t)-[r2*0..1]-()
+        WHERE ID(a)=135
+        FOREACH (x IN r1 | DELETE x)
+        FOREACH (x IN r2 | DELETE x)
+        FOREACH (x IN rels | DELETE x)
+        DELETE a, t
          */
         public async Task<bool> DeleteTree(string uuid)
         {
@@ -62,12 +70,19 @@ namespace Server.lib.Repository
                 {
                     var count = session.WriteTransaction((tx) =>
                     {
-                        var result = tx.Run(@"
+                        // var query = @"
+                        //     MATCH (tree: Tree { uuid: $uuid})
+                        //     OPTIONAL MATCH (tree)-[r]-() 
+                        //     DELETE tree, r
+                        //     RETURN count(tree)
+                        // ";
+                        // Starting in Neo4j 2.3.x
+                        var query = @"
                             MATCH (tree: Tree { uuid: $uuid})
-                            OPTIONAL MATCH (tree)-[r]-() 
-                            DELETE tree, r
+                            DETACH DELETE tree
                             RETURN count(tree)
-                        ", new { uuid });
+                        ";
+                        var result = tx.Run(query, new { uuid });
                         return (result.Single())[0].As<uint>();
                     });
                     logger.LogInformation($"delete {count} {uuid}");
