@@ -12,7 +12,7 @@ namespace Server
     {
         private async static Task StartIceServer()
         {
-            var config = lib.ConfigProvider.IceAdapter;
+            var config = Config.IceAdapterConfig.Config;
             Console.WriteLine($"IceServer.name = \"{config.name}\"");
             Console.WriteLine($"IceServer.endpoints = \"{config.endpoints}\"");
             await Task.Delay(0);

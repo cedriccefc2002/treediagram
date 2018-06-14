@@ -15,18 +15,5 @@ namespace Server.lib
             configuration = builder.Build();
             Console.WriteLine($"ConfigVersion = \"{configuration["Version"]}\"");
         }
-
-        public static Config.IceAdapterConfig IceAdapter
-        {
-            get
-            {
-                var IceAdapterConfig = configuration.GetSection("Ice.Adapter");
-                return new Config.IceAdapterConfig()
-                {
-                    name = IceAdapterConfig.GetSection("name").Value,
-                    endpoints = IceAdapterConfig.GetSection("endpoints").Value
-                };
-            }
-        }
     }
 }
