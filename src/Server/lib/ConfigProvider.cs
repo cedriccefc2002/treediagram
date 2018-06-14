@@ -13,17 +13,14 @@ namespace Server.lib
             var configuration = builder.Build();
         }
 
-        public static Config.IceAdapterConfig IceAdapter
+        public static Config.IceAdapterConfig IceAdapterConfig()
         {
-            get
+            var IceAdapterConfig = configuration.GetSection("Ice.Adapter");
+            return new Config.IceAdapterConfig()
             {
-                var IceAdapterConfig = configuration.GetSection("Ice.Adapter");
-                return new Config.IceAdapterConfig()
-                {
-                    name = IceAdapterConfig.GetSection("name").Value,
-                    endpoints = IceAdapterConfig.GetSection("endpoints").Value
-                };
-            }
+                name = IceAdapterConfig.GetSection("name").Value,
+                endpoints = IceAdapterConfig.GetSection("endpoints").Value
+            };
         }
     }
 }
