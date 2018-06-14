@@ -10,28 +10,32 @@ namespace Server.lib.Service
     public static class Provider
     {
         private static readonly ServiceCollection services;
+        public static readonly IServiceProvider serviceProvider;
 
         static Provider()
         {
             services = new ServiceCollection();
+            AddService(services);
+            services.AddLogging((builder) => builder.SetMinimumLevel(LogLevel.Trace));
+            serviceProvider = services.BuildServiceProvider();
+            ConfigLog(serviceProvider);
+        }
+        private static void AddService(ServiceCollection services)
+        {
             services.AddSingleton<ServerService>();
             // services.AddSingleton<NodeService>();
-        }
-        public static IServiceProvider Init(string logPath = "nlog.config")
-        {
+
             services.AddSingleton<ILoggerFactory, LoggerFactory>();
             services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
-            services.AddLogging((builder) => builder.SetMinimumLevel(LogLevel.Trace));
-
-            IServiceProvider serviceProvider = services.BuildServiceProvider();
+        }
+        public static void ConfigLog(IServiceProvider serviceProvider, string logPath = "nlog.config")
+        {
             var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-
             // var cwd = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             //configure NLog
             loggerFactory.AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
             // NLog.LogManager.LoadConfiguration(Path.Join(cwd,logPath));
             NLog.LogManager.LoadConfiguration(logPath);
-            return serviceProvider;
         }
     }
 

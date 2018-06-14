@@ -18,7 +18,9 @@ namespace Server.lib.Service
 
         public override ServerStatus status(Ice.Current current)
         {
+            // _logger.LogInformation($"status");
             var task = statusAsync();
+
             return task.Result;
         }
 

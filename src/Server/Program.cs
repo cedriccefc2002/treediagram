@@ -12,14 +12,14 @@ namespace Server
 
     public class Program
     {
-        private async static Task StartIceServer(IServiceProvider serviceProvider)
+        private async static Task StartIceServer()
         {
             await Task.Delay(0);
             using (Ice.Communicator communicator = Ice.Util.initialize())
             {
                 var adapter = communicator.createObjectAdapterWithEndpoints("TreeDiagramAdapter", "default -h localhost -p 10000");
                 // adapter.add(serviceProvider.GetRequiredService<Service.NodeService>(), Ice.Util.stringToIdentity("Node"));
-                adapter.add(serviceProvider.GetRequiredService<Service.ServerService>(), Ice.Util.stringToIdentity("Server"));
+                adapter.add(Service.Provider.serviceProvider.GetRequiredService<Service.ServerService>(), Ice.Util.stringToIdentity("Server"));
                 adapter.activate();
                 await Task.Factory.StartNew(() =>
                 {
@@ -50,8 +50,8 @@ namespace Server
         {
             try
             {
-                IServiceProvider serviceProvider = Service.Provider.Init();
-                Task iceServerTask = StartIceServer(serviceProvider);
+                // IServiceProvider serviceProvider = Service.Provider.Init();
+                Task iceServerTask = StartIceServer();
                 // SaveData("s").Wait();
                 Console.WriteLine("按下任意鍵停止");
                 Console.ReadKey();
