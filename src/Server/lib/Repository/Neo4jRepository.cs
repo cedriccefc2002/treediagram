@@ -9,15 +9,15 @@ namespace Server.lib.Repository
 {
     public class Neo4jRepository
     {
-        private readonly ILogger<Neo4jRepository> _logger;
-        private readonly IDriver _driver;
+        private readonly ILogger<Neo4jRepository> logger;
+        private readonly IDriver driver;
 
         public Neo4jRepository(ILogger<Neo4jRepository> logger)
         {
-            _logger = logger;
+            this.logger = logger;
             var config = Neo4jConfig.Config;
-            _logger.LogInformation($"{config.uri}|{config.username}");
-            _driver = GraphDatabase.Driver(config.uri, AuthTokens.Basic(config.username, config.password), new Neo4j.Driver.V1.Config
+            this.logger.LogInformation($"{config.uri}|{config.username}");
+            driver = GraphDatabase.Driver(config.uri, AuthTokens.Basic(config.username, config.password), new Neo4j.Driver.V1.Config
             {
                 // Failed after retried for 3 times in 5000 ms
                 MaxTransactionRetryTime = TimeSpan.FromSeconds(5),
@@ -31,20 +31,20 @@ namespace Server.lib.Repository
             {
 
                 await Task.Delay(0);
-                using (var session = _driver.Session())
+                using (var session = driver.Session())
                 {
                     var summary = session.WriteTransaction((tx) =>
                     {
                         var result = tx.Run(@"RETURN datetime()");
                         return (result.Single())[0].As<string>();
                     });
-                    _logger.LogInformation(summary);
+                    logger.LogInformation(summary);
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                logger.LogError(ex.Message);
                 return true;
             }
         }

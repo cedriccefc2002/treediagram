@@ -15,29 +15,29 @@ namespace Server.lib
         static Provider()
         {
             services = new ServiceCollection();
-            AddRepository(services);
-            AddService(services);
-            AddLogger(services);
+            AddRepository(ref services);
+            AddService(ref services);
+            AddLogger(ref services);
             services.AddLogging((builder) => builder.SetMinimumLevel(LogLevel.Trace));
             serviceProvider = services.BuildServiceProvider();
-            ConfigLog(serviceProvider);
+            ConfigLog(ref serviceProvider);
         }
-        private static void AddRepository(ServiceCollection services)
+        private static void AddRepository(ref ServiceCollection services)
         {
             services.AddSingleton<Repository.Neo4jRepository>();
         }
-        private static void AddService(ServiceCollection services)
+        private static void AddService(ref ServiceCollection services)
         {
             services.AddSingleton<Service.ServerService>();
             // services.AddSingleton<NodeService>();
         }
-        private static void AddLogger(ServiceCollection services)
+        private static void AddLogger(ref ServiceCollection services)
         {
             services.AddSingleton<ILoggerFactory, LoggerFactory>();
             services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
         }
 
-        public static void ConfigLog(IServiceProvider serviceProvider, string logPath = "nlog.config")
+        private static void ConfigLog(ref IServiceProvider serviceProvider, string logPath = "nlog.config")
         {
             var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
             // var cwd = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);

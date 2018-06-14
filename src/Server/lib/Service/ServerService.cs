@@ -8,10 +8,10 @@ namespace Server.lib.Service
 {
     public class ServerService : TreeDiagram.ServerDisp_
     {
-        private readonly ILogger<ServerService> _logger;
+        private readonly ILogger<ServerService> logger;
         public ServerService(ILogger<ServerService> logger)
         {
-            _logger = logger;
+            this.logger = logger;
         }
         private async Task<ServerStatus> statusAsync()
         {
@@ -31,28 +31,28 @@ namespace Server.lib.Service
 
         public override void createTree(Tree tree, Ice.Current current)
         {
-            _logger.LogInformation("");
+            logger.LogInformation("");
         }
 
         public override Tree[] readTree(Ice.Current current)
         {
-            _logger.LogInformation("");
+            logger.LogInformation("");
             return new Tree[] { new Tree() };
         }
 
         public override Tree readSingleTree(string uuid, Ice.Current current)
         {
-            _logger.LogInformation("");
+            logger.LogInformation("");
             return new Tree() { uuid = uuid };
         }
         public override void updateTree(Tree tree, Ice.Current current)
         {
-            _logger.LogInformation("");
+            logger.LogInformation("");
         }
 
         public override void deleteTree(string uuid, Ice.Current current)
         {
-            _logger.LogInformation("");
+            logger.LogInformation("");
         }
     }
 }
