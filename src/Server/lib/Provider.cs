@@ -15,11 +15,16 @@ namespace Server.lib
         static Provider()
         {
             services = new ServiceCollection();
+            AddRepository(services);
             AddService(services);
             AddLogger(services);
             services.AddLogging((builder) => builder.SetMinimumLevel(LogLevel.Trace));
             serviceProvider = services.BuildServiceProvider();
             ConfigLog(serviceProvider);
+        }
+        private static void AddRepository(ServiceCollection services)
+        {
+            services.AddSingleton<Repository.Neo4jRepository>();
         }
         private static void AddService(ServiceCollection services)
         {

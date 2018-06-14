@@ -13,7 +13,7 @@ namespace Server.lib.Config
             get
             {
                 IConfigurationSection section = ConfigProvider.configuration.GetSection("Ice.Adapter");
-                return new Config.IceAdapterConfig()
+                return new IceAdapterConfig()
                 {
                     name = section.GetSection("name").Value,
                     endpoints = section.GetSection("endpoints").Value

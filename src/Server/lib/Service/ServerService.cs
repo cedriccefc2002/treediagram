@@ -1,6 +1,9 @@
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TreeDiagram;
+using Server.lib.Config;
+using Server.lib.Repository;
 namespace Server.lib.Service
 {
     public class ServerService : TreeDiagram.ServerDisp_
@@ -13,7 +16,9 @@ namespace Server.lib.Service
         private async Task<ServerStatus> statusAsync()
         {
             await Task.Delay(0);
-            return ServerStatus.Normal;
+            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
+            var status = await repository.Status();
+            return status ? ServerStatus.Normal : ServerStatus.Fault;
         }
 
         public override ServerStatus status(Ice.Current current)
