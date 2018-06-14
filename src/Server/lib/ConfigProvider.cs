@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Microsoft.Extensions.Configuration;
 
@@ -5,22 +6,27 @@ namespace Server.lib
 {
     public static class ConfigProvider
     {
+        private static readonly IConfigurationBuilder builder;
         public static readonly IConfigurationRoot configuration;
 
         static ConfigProvider()
         {
-            var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
-            var configuration = builder.Build();
+            builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+            configuration = builder.Build();
+            Console.WriteLine($"ConfigVersion = \"{configuration["Version"]}\"");
         }
 
-        public static Config.IceAdapterConfig IceAdapterConfig()
+        public static Config.IceAdapterConfig IceAdapter
         {
-            var IceAdapterConfig = configuration.GetSection("Ice.Adapter");
-            return new Config.IceAdapterConfig()
+            get
             {
-                name = IceAdapterConfig.GetSection("name").Value,
-                endpoints = IceAdapterConfig.GetSection("endpoints").Value
-            };
+                var IceAdapterConfig = configuration.GetSection("Ice.Adapter");
+                return new Config.IceAdapterConfig()
+                {
+                    name = IceAdapterConfig.GetSection("name").Value,
+                    endpoints = IceAdapterConfig.GetSection("endpoints").Value
+                };
+            }
         }
     }
 }
