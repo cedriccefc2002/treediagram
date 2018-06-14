@@ -8,10 +8,11 @@
 
 <body onload="status()">
     <h1>Ice Test</h1>
-    <!-- <input type="text" id="data" value="Hello" />
-    <button onclick="status()">送出</button>
-    <input type="text" id="resut" value="" /> -->
+    <input type="text" id="data" value="Hello" />
+    <button onclick="create()">送出</button>
+    <!-- <input type="text" id="resut" value="" /> -->
     <script>
+        const uuidv1 = require('uuid/v1');
         const path = require("path");
         require('module').globalPaths.push(path.join(process.cwd(), "Ice"));
         const Ice = require("ice").Ice;
@@ -25,7 +26,35 @@
                 setTimeout(resulve, timeout);
             })
         }
+        async function create() {
+            let ic;
+            try {
+                ic = Ice.initialize();
+                const base = ic.stringToProxy("Server:default -h localhost -p 10000");
+                const server = await TreeDiagram.ServerPrx.checkedCast(base);
+                if (server) {
+                    // let type = document.getElementById("data").value
+                    await server.createTree(new TreeDiagram.Tree(uuidv1(), ""));
+                    let readTree = await server.readTree();
+                    console.dir(readTree);
+                    await server.deleteTree(readTree[0].uuid);
+                }
+                else {
+                    console.log("Invalid proxy");
+                }
+            }
+            catch (ex) {
+                console.error(ex);
+                //     process.exitCode = 1;
+            }
+            finally {
+                if (ic) {
+                    await ic.destroy();
+                }
+            }
+        };
         async function status() {
+            return;
             let ic;
             try {
                 ic = Ice.initialize();
@@ -35,9 +64,10 @@
                     // document.getElementById("data").value
                     // document.getElementById("resut").value = await server.status();
                     while (true) {
-                        await setTimeoutAsync(100);
                         let status = await server.status();
-                        // console.log();
+                        let readTree = await server.readTree();
+                        console.dir(readTree);
+                        await setTimeoutAsync(5000);
                     }
                 }
                 else {

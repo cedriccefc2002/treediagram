@@ -1,8 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Server.lib.Config;
 using Server.lib.Repository;
+using Model = Server.lib.Service.Model;
 namespace Server.lib.Service
 {
     public class ServerService
@@ -14,9 +17,25 @@ namespace Server.lib.Service
         }
         public async Task<bool> Status()
         {
-            await Task.Delay(0);
             var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
             return await repository.Status();
+        }
+        public async Task<bool> createTree(Model.TreeModel tree)
+        {
+            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
+            return await repository.CreateTree(tree);
+        }
+
+        public async Task<List<Model.TreeModel>> readTree()
+        {
+            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
+            return (await repository.ListAllTrees()).Select(a => new Model.TreeModel() { uuid = a.uuid, type = a.type }).ToList();
+        }
+
+        public async Task<bool> DeleteTree(string uuid)
+        {
+            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
+            return await repository.DeleteTree(uuid);
         }
     }
 }

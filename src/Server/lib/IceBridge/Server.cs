@@ -1,9 +1,13 @@
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Ice;
 using TreeDiagram;
-using Server.lib;
+using Service = Server.lib.Service;
+using Model = Server.lib.Service.Model;
+using Domain = Server.lib.Repository.Domain;
+using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
+
 namespace Server.lib.IceBridge
 {
     public class Server : TreeDiagram.ServerDisp_
@@ -17,19 +21,30 @@ namespace Server.lib.IceBridge
         public override ServerStatus status(Current current)
         {
             logger.LogInformation($"status");
-            var service = lib.Provider.serviceProvider.GetRequiredService<lib.Service.ServerService>();
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             return service.Status().Result ? ServerStatus.Normal : ServerStatus.Fault; ;
         }
 
         public override void createTree(Tree tree, Current current)
         {
-            logger.LogInformation("");
+            logger.LogInformation("createTree");
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+            service.createTree(new Model.TreeModel()
+            {
+                uuid = tree.uuid,
+                type = tree.type == TreeType.Binary ? Domain.TreeType.Binary : Domain.TreeType.Normal
+            }).Wait();
         }
 
         public override Tree[] readTree(Current current)
         {
-            logger.LogInformation("");
-            return new Tree[] { new Tree() };
+            logger.LogInformation("readTree");
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+            return service.readTree().Result.Select(a => new Tree()
+            {
+                uuid = a.uuid,
+                type = a.type == Domain.TreeType.Binary ? TreeType.Binary : TreeType.Normal
+            }).ToArray();
         }
 
         public override Tree readSingleTree(string uuid, Current current)
@@ -44,7 +59,9 @@ namespace Server.lib.IceBridge
 
         public override void deleteTree(string uuid, Current current)
         {
-            logger.LogInformation("");
+            logger.LogInformation("deleteTree");
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+            service.DeleteTree(uuid).Wait();
         }
     }
 }

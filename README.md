@@ -124,10 +124,12 @@ dotnet build src/ConsoleClient
 cd ./src/GuiClient
 npm init
 npm install ice --save
+npm install uuid --save
 npm install typescript --save-dev
 npm install tslint --save-dev
 npm install electron --save-dev --save-exact
 npm install @types/electron --save-dev
+npm install @types/uuid --save-dev
 # 初始化 typescript 設定
 ./node_modules/.bin/tsc --init
 # 初始化 tslint 設定
