@@ -32,7 +32,8 @@ namespace Server
 
         private void AddService(ref Ice.ObjectAdapter adapter)
         {
-            adapter.add(lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>(), Ice.Util.stringToIdentity("Server"));
+            var provider = lib.Provider.serviceProvider;
+            adapter.add(provider.GetRequiredService<lib.IceBridge.Server>(), Ice.Util.stringToIdentity("Server"));
         }
 
         public void start(string name, Communicator communicator, string[] args)

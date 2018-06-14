@@ -11,10 +11,10 @@ namespace Server.lib
     {
         private static readonly ServiceCollection services;
         public static readonly IServiceProvider serviceProvider;
-
         static Provider()
         {
             services = new ServiceCollection();
+            AddIceBridge(ref services);
             AddRepository(ref services);
             AddService(ref services);
             AddLogger(ref services);
@@ -29,14 +29,16 @@ namespace Server.lib
         private static void AddService(ref ServiceCollection services)
         {
             services.AddSingleton<Service.ServerService>();
-            // services.AddSingleton<NodeService>();
+        }
+        private static void AddIceBridge(ref ServiceCollection services)
+        {
+            services.AddSingleton<IceBridge.Server>();
         }
         private static void AddLogger(ref ServiceCollection services)
         {
             services.AddSingleton<ILoggerFactory, LoggerFactory>();
             services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
         }
-
         private static void ConfigLog(ref IServiceProvider serviceProvider, string logPath = "nlog.config")
         {
             var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
