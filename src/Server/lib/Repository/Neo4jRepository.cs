@@ -24,6 +24,23 @@ namespace Server.lib.Repository
                 MaxTransactionRetryTime = TimeSpan.FromSeconds(5),
                 ConnectionTimeout = TimeSpan.FromSeconds(1)
             });
+            this.CreateIndex(ref driver);
+        }
+
+        protected void CreateIndex(ref IDriver driver)
+        {
+            using (var session = driver.Session())
+            {
+                logger.LogInformation($"Create Index");
+                session.WriteTransaction((tx) =>
+                 {
+                     tx.Run(" CREATE INDEX ON :Tree(uuid)");
+                     tx.Run(" CREATE INDEX ON :Tree(type)");
+                     tx.Run(" CREATE INDEX ON :Node(uuid)");
+                     tx.Run(" CREATE INDEX ON :Node(root)");
+                     tx.Success();
+                 });
+            }
         }
 
         /*
@@ -61,6 +78,32 @@ namespace Server.lib.Repository
         FOREACH (x IN rels | DELETE x)
         DELETE a, t
          */
+        #region Node
+        public async Task<bool> CreateNode(string root, string data = "")
+        {
+            await Task.Delay(0);
+            using (var session = driver.Session())
+            {
+                var uuid = Guid.NewGuid().ToString();
+                var id = session.WriteTransaction((tx) =>
+                {
+                    var query = @"
+                            CREATE (node: Node) 
+                            SET 
+                                node.uuid = $uuid,
+                                node.data = $data
+                                node.root = $root
+                            RETURN id(node)
+                        ";
+                    var result = tx.Run(query, new { uuid });
+                    return (result.Single())[0].As<string>();
+                });
+                logger.LogInformation($"delete {id} {uuid} {data} {root}");
+                return true;
+            }
+        }
+        #endregion 
+        #region Tree
         public async Task<bool> DeleteTree(string uuid)
         {
             try
@@ -157,6 +200,8 @@ namespace Server.lib.Repository
             }
             return result;
         }
+        #endregion
+
         // private async Task RunSession()
         // {
         //     try
