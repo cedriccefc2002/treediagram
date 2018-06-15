@@ -258,8 +258,10 @@ namespace Server.lib.Repository
                     session.WriteTransaction((tx) =>
                     {
                         tx.Run(@"
-                            MATCH p = (:Tree {uuid: $root})-[r*0..]->(x:Node)
-                            WITH collect(DISTINCT x.uuid) as nodes, [r in collect(DISTINCT last(r)) | [startNode(r).uuid, endNode(r).uuid ]] as rels
+                            MATCH p = (:Tree {uuid: $root})<-[r*0..]-(x:Node)
+                            WITH
+                                collect(DISTINCT x.uuid) as nodes, 
+                                [r in collect(DISTINCT last(r)) | [startNode(r).uuid, endNode(r).uuid ]] as rels
                             RETURN size(nodes),size(rels), nodes, rels
                         ", new { root });
                     });
