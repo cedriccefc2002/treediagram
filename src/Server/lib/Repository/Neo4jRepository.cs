@@ -255,16 +255,21 @@ namespace Server.lib.Repository
                 logger.LogInformation($"{root}");
                 using (var session = driver.Session())
                 {
-                    session.WriteTransaction((tx) =>
+                    var result = session.WriteTransaction((tx) =>
                     {
-                        tx.Run(@"
+                        return tx.Run(@"
                             MATCH p = (:Tree {uuid: $root})<-[r*0..]-(x:Node)
                             WITH
-                                collect(DISTINCT x.uuid) as nodes, 
+                                collect(DISTINCT x) as nodes, 
                                 [r in collect(DISTINCT last(r)) | [startNode(r).uuid, endNode(r).uuid ]] as rels
-                            RETURN size(nodes),size(rels), nodes, rels
+                            RETURN size(nodes) AS nodesCount,size(rels) AS relsCount, nodes, rels
                         ", new { root });
-                    });
+                    }).Peek();
+                    var nodesCount = result["nodesCount"].As<ulong>();
+                    var relsCount = result["relsCount"].As<ulong>();
+                    var nodes = result["nodes"].As<List<dynamic>>();
+                    var rels = result["rels"].As<List<dynamic>>();
+                    logger.LogInformation($"{nodesCount}|{relsCount}");
                     return true;
                 }
             }
