@@ -34,9 +34,9 @@ namespace Server.lib.Repository
                 logger.LogInformation($"Create Index");
                 session.WriteTransaction((tx) =>
                  {
-                     tx.Run("CREATE INDEX ON :Tree(uuid)");
+                     tx.Run("CREATE CONSTRAINT ON (tree:Tree) ASSERT tree.uuid IS UNIQUE");
                      tx.Run("CREATE INDEX ON :Tree(type)");
-                     tx.Run("CREATE INDEX ON :Node(uuid)");
+                     tx.Run("CREATE CONSTRAINT ON (node:Node) ASSERT node.uuid IS UNIQUE");
                      tx.Run("CREATE INDEX ON :Node(root)");
                      tx.Success();
                  });
