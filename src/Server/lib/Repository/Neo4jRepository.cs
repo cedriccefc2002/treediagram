@@ -34,10 +34,10 @@ namespace Server.lib.Repository
                 logger.LogInformation($"Create Index");
                 session.WriteTransaction((tx) =>
                  {
-                     tx.Run(" CREATE INDEX ON :Tree(uuid)");
-                     tx.Run(" CREATE INDEX ON :Tree(type)");
-                     tx.Run(" CREATE INDEX ON :Node(uuid)");
-                     tx.Run(" CREATE INDEX ON :Node(root)");
+                     tx.Run("CREATE INDEX ON :Tree(uuid)");
+                     tx.Run("CREATE INDEX ON :Tree(type)");
+                     tx.Run("CREATE INDEX ON :Node(uuid)");
+                     tx.Run("CREATE INDEX ON :Node(root)");
                      tx.Success();
                  });
             }
@@ -79,27 +79,190 @@ namespace Server.lib.Repository
         DELETE a, t
          */
         #region Node
-        public async Task<bool> CreateNode(string root, string data = "")
+        // 新增節點, 節點可儲存資料 (string)
+        public async Task<bool> CreateNode(string root, string parent, string data = "")
         {
-            await Task.Delay(0);
-            using (var session = driver.Session())
+            try
             {
-                var uuid = Guid.NewGuid().ToString();
-                var id = session.WriteTransaction((tx) =>
+                await Task.Delay(0);
+                using (var session = driver.Session())
                 {
-                    var query = @"
+                    var uuid = Guid.NewGuid().ToString();
+                    logger.LogInformation($"{uuid}|{data}|{root}|{parent}|Start");
+                    var id = session.WriteTransaction((tx) =>
+                    {
+                        var query = @"
                             CREATE (node: Node) 
                             SET 
                                 node.uuid = $uuid,
-                                node.data = $data
-                                node.root = $root
+                                node.data = $data,
+                                node.root = $root,
+                                node.parent = $parent
                             RETURN id(node)
                         ";
-                    var result = tx.Run(query, new { uuid });
-                    return (result.Single())[0].As<string>();
-                });
-                logger.LogInformation($"delete {id} {uuid} {data} {root}");
-                return true;
+                        var result = tx.Run(query, new { uuid, data, root });
+                        tx.Run(@"
+                            MATCH 
+                                (p {uuid: $parent}), 
+                                (n {uuid: $uuid})
+                            CREATE (p)<-[:IsChild]-(n)
+                        ");
+                        return (result.Single())[0].As<string>();
+                    });
+                    logger.LogInformation($"{uuid}|{data}|{root}|{parent}|{id}");
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                return false;
+            }
+        }
+        // 編輯節點資料
+        public async Task<bool> UpdateNodeData(string uuid, string data)
+        {
+            try
+            {
+                await Task.Delay(0);
+                logger.LogInformation($"{uuid}|{data}");
+                using (var session = driver.Session())
+                {
+                    session.WriteTransaction((tx) =>
+                    {
+                        var query = @"
+                            MATCH 
+                                (node: Node {uuid: $uuid})
+                            SET 
+                                node.data = $data
+                        ";
+                        tx.Run(query, new { uuid, data });
+                    });
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                return false;
+            }
+        }
+        // 刪除子樹
+        public async Task<bool> DeleteNodeTree(string uuid)
+        {
+            try
+            {
+                await Task.Delay(0);
+                logger.LogInformation($"{uuid}");
+                using (var session = driver.Session())
+                {
+                    session.WriteTransaction((tx) =>
+                    {
+                        var query = @"
+                            MATCH ()<-[r1:IsChild*0..1]-(node: Node)<-[r2:IsChild*]-(children: Node)-[r3:IsChild*0..1]-() 
+                            WHERE node.uuid = $uuid
+                            FOREACH (x IN r1 | DELETE x)
+                            FOREACH (x IN r2 | DELETE x)
+                            FOREACH (x IN r3 | DELETE x)
+                            DELETE node, children
+                        ";
+                        tx.Run(query, new { uuid });
+                    });
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                return false;
+            }
+        }
+        // 刪除節點：子樹會保留
+        public async Task<bool> DeleteNode(string uuid)
+        {
+            try
+            {
+                await Task.Delay(0);
+                logger.LogInformation($"{uuid}");
+                using (var session = driver.Session())
+                {
+                    session.WriteTransaction((tx) =>
+                    {
+                        var query = @"
+                            MATCH (p)<-[r1:IsChild*0..1]-(node: Node)<-[r2:IsChild*0..1]-(children: Node) 
+                            WHERE node.uuid = $uuid
+                            FOREACH (child IN children | SET child.parent = node.parent)
+                            FOREACH (child IN children | CREATE (p)<-[:IsChild]-(n))
+                            FOREACH (x IN r1 | DELETE x)
+                            FOREACH (x IN r2 | DELETE x)
+                            DELETE node
+                        ";
+                        tx.Run(query, new { uuid });
+                    });
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                return false;
+            }
+        }
+        // 搬移節點
+        public async Task<bool> MoveNode(string uuid, string newParent)
+        {
+            try
+            {
+                await Task.Delay(0);
+                logger.LogInformation($"{uuid} {newParent}");
+                using (var session = driver.Session())
+                {
+                    session.WriteTransaction((tx) =>
+                    {
+                        tx.Run(@"
+                            MATCH ()<-[r1:IsChild]-(node: Node{uuid: $uuid})
+                            DELETE r1
+                        ", new { uuid });
+                        tx.Run(@"
+                            MATCH 
+                                (p {uuid: $newParent}), 
+                                (n {uuid: $uuid})
+                            CREATE (p)<-[:IsChild]-(n)
+                        ", new { uuid, newParent });
+                    });
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                return false;
+            }
+        }
+        // 檢視圖
+        public async Task<bool> GetNodeView(string root)
+        {
+            try
+            {
+                await Task.Delay(0);
+                logger.LogInformation($"{root}");
+                using (var session = driver.Session())
+                {
+                    session.WriteTransaction((tx) =>
+                    {
+                        tx.Run(@"
+                            MATCH p = (:Tree {uuid: $root})-[r*0..]->(x:Node)
+                            WITH collect(DISTINCT x.uuid) as nodes, [r in collect(DISTINCT last(r)) | [startNode(r).uuid, endNode(r).uuid ]] as rels
+                            RETURN size(nodes),size(rels), nodes, rels
+                        ", new { root });
+                    });
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                return false;
             }
         }
         #endregion 
@@ -128,7 +291,7 @@ namespace Server.lib.Repository
                         var result = tx.Run(query, new { uuid });
                         return (result.Single())[0].As<uint>();
                     });
-                    logger.LogInformation($"delete {count} {uuid}");
+                    logger.LogInformation($"{count}|{uuid}");
                     return true;
                 }
             }
@@ -145,7 +308,7 @@ namespace Server.lib.Repository
                 await Task.Delay(0);
                 using (var session = driver.Session())
                 {
-                    var summary = session.WriteTransaction((tx) =>
+                    var id = session.WriteTransaction((tx) =>
                     {
                         var result = tx.Run(@"
                             CREATE (tree: Tree) 
@@ -160,7 +323,7 @@ namespace Server.lib.Repository
                         });
                         return (result.Single())[0].As<string>();
                     });
-                    logger.LogInformation(summary);
+                    logger.LogInformation(id);
                     return true;
                 }
             }
@@ -186,10 +349,13 @@ namespace Server.lib.Repository
                     ");
                     foreach (var record in cursor)
                     {
+                        var uuid = record["uuid"].As<string>();
+                        var type = record["type"].As<string>() == "Binary" ? Domain.TreeType.Binary : Domain.TreeType.Normal;
+                        logger.LogInformation($"{uuid}|{type}");
                         result.Add(new Domain.TreeDomain()
                         {
-                            uuid = record["uuid"].As<string>(),
-                            type = record["type"].As<string>() == "Binary" ? Domain.TreeType.Binary : Domain.TreeType.Normal
+                            uuid = uuid,
+                            type = type
                         });
                     }
                 }
@@ -202,25 +368,6 @@ namespace Server.lib.Repository
         }
         #endregion
 
-        // private async Task RunSession()
-        // {
-        //     try
-        //     {
-        //         await Task.Delay(0);
-        //         using (var session = driver.Session())
-        //         {
-        //             var result = await session.RunAsync("MATCH (movie:Movie) WHERE movie.title CONTAINS {title} RETURN movie", new { title = "q" });
-        //             await result.ForEachAsync((record) =>
-        //             {
-        //                 var node = record["movie"].As<INode>();
-        //             });
-        //         }
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         logger.LogError(ex.Message);
-        //     }
-        // }
         public async Task<bool> Status()
         {
             try
@@ -230,7 +377,7 @@ namespace Server.lib.Repository
                 {
                     var cursor = session.Run(@"RETURN datetime()");
                     var result = cursor.Single()[0].As<string>(); ;
-                    logger.LogInformation(result);
+                    logger.LogInformation($"{result}");
                     return true;
                 }
             }

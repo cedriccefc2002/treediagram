@@ -20,14 +20,14 @@ namespace Server.lib.IceBridge
 
         public override ServerStatus status(Current current)
         {
-            logger.LogInformation($"status");
+            logger.LogInformation($"");
             var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             return service.Status().Result ? ServerStatus.Normal : ServerStatus.Fault; ;
         }
 
         public override void createTree(Tree tree, Current current)
         {
-            logger.LogInformation("createTree");
+            logger.LogInformation("");
             var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             service.createTree(new Model.TreeModel()
             {
@@ -38,7 +38,7 @@ namespace Server.lib.IceBridge
 
         public override Tree[] readTree(Current current)
         {
-            logger.LogInformation("readTree");
+            logger.LogInformation("");
             var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             return service.readTree().Result.Select(a => new Tree()
             {
@@ -59,7 +59,7 @@ namespace Server.lib.IceBridge
 
         public override void deleteTree(string uuid, Current current)
         {
-            logger.LogInformation("deleteTree");
+            logger.LogInformation("");
             var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             service.DeleteTree(uuid).Wait();
         }

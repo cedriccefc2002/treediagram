@@ -4,7 +4,7 @@ namespace Server.lib.Repository.Domain
     {
         public string uuid { get; set; }
         public string root { get; set; }
-
+        public string parent { get; set; }
         public string data { get; set; }
     }
 }
