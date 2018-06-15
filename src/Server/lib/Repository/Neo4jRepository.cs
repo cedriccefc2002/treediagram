@@ -189,13 +189,20 @@ namespace Server.lib.Repository
                     session.WriteTransaction((tx) =>
                     {
                         var query = @"
-                            MATCH (p)<-[r1:IsChild*0..1]-(node: Node)<-[r2:IsChild*0..1]-(children: Node) 
+                            MATCH
+                                (p)<-[r1:IsChild*0..1]-(node: Node)<-[r2:IsChild*0..1]-(children: Node)
                             WHERE node.uuid = $uuid
-                            FOREACH (child IN children | SET child.parent = node.parent)
-                            FOREACH (child IN children | CREATE (p)<-[:IsChild]-(n))
-                            FOREACH (x IN r1 | DELETE x)
-                            FOREACH (x IN r2 | DELETE x)
-                            DELETE node
+                            WITH
+                                COLLECT(children) AS childrens,
+                                HEAD(COLLECT(node)) AS self,
+                                HEAD(COLLECT(p)) AS parent,
+                                r1 AS R1,
+                                r2 AS R2
+                            FOREACH (child IN childrens | CREATE (parent)<-[:IsChild]-(child))
+                            FOREACH (child IN childrens | SET child.parent = self.parent)
+                            FOREACH (x IN R1 | DELETE x)
+                            FOREACH (x IN R2 | DELETE x)
+                            DETACH DELETE self
                         ";
                         tx.Run(query, new { uuid });
                     });
