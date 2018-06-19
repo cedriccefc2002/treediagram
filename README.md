@@ -4,6 +4,31 @@
 
 ![連線測試](doc/img/run.png)
 
+## Glacier2 執行
+
+```sh
+glacier2router --Ice.Config=src/glacier2.conf
+```
+
+Gui Client
+
+```js
+const Ice = require("ice").Ice;
+const Glacier2 = require("ice").Glacier2;
+// 設定Router
+let ic = Ice.initialize([
+    "--Ice.Default.Router=PublicRouter/router:tcp -h 127.0.0.1 -p 10001",
+    "--Ice.RetryIntervals=-1",
+    "--Ice.ACM.Client=0"
+]);
+let router = await Glacier2.RouterPrx.checkedCast(ic.getDefaultRouter());
+// 設定帳號密碼
+let session = await router.createSession("username", "password");
+let proxy = ic.stringToProxy("Server:tcp -h 127.0.0.1 -p 10000");
+```
+
+[Client] <-> [Glacier2:10001] <-> [Server:10000]
+
 ## Neo4j 資料庫安裝
 
 1. 使用 **docker** 安裝資料儲存目錄設定為`/home/cefc/Data/neo4j`
@@ -229,6 +254,8 @@ else
 ## 已知問題：
 
 1. **Ice**框架讓Server主動推播資料到Client?
+
+使用 `Glacier2`
 
 1. 複寫呼叫**Ice**產生物件的方法是非同步的，如果裡面有用到`Neo4j.Driver.V1.ISession`的`WriteTransactionAsync`的**async**方法，會導致**Block**無回應
 

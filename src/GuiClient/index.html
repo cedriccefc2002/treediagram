@@ -16,6 +16,7 @@
         const path = require("path");
         require('module').globalPaths.push(path.join(process.cwd(), "Ice"));
         const Ice = require("ice").Ice;
+        const Glacier2 = require("ice").Glacier2;
         const TreeDiagram = require("./Ice/Server").TreeDiagram;
         async function setImmediateAsync() {
             return new Promise((resulve, reject) => {
@@ -29,9 +30,23 @@
         async function create() {
             let ic;
             try {
-                ic = Ice.initialize();
-                const base = ic.stringToProxy("Server:default -h localhost -p 10000");
-                const server = await TreeDiagram.ServerPrx.checkedCast(base);
+                ic = Ice.initialize([
+                    "--Ice.Default.Router=PublicRouter/router:tcp -h 127.0.0.1 -p 10001",
+                    "--Ice.RetryIntervals=-1",
+                    "--Ice.ACM.Client=0"
+                ]);
+
+                // const base = ic.stringToProxy("Server:default -h localhost -p 10000");
+
+
+
+                let defaultRouter = ic.getDefaultRouter();
+                var router = await Glacier2.RouterPrx.checkedCast(ic.getDefaultRouter());
+                console.dir(router);
+                var session = await router.createSession("username", "password");
+                console.dir(session);
+                let proxy = ic.stringToProxy("Server:tcp -h 127.0.0.1 -p 10000");
+                const server = await TreeDiagram.ServerPrx.checkedCast(proxy);
                 if (server) {
                     // let type = document.getElementById("data").value
                     await server.createTree(new TreeDiagram.Tree(uuidv1(), ""));
