@@ -301,9 +301,29 @@ namespace Server.lib.Repository
                     }).Peek();
                     var nodesCount = result["nodesCount"].As<uint>();
                     var relsCount = result["relsCount"].As<uint>();
-                    var nodes = result["nodes"].As<List<Domain.NodeDomain>>();
-                    var rels = result["rels"].As<List<Domain.NodeRelationshipDomain>>();
+                    var nodeNode = result["nodes"].As<IList<INode>>();
+                    var relNode = result["rels"].As<IList<IList<KeyValuePair<string, Object>>>>();
                     logger.LogInformation($"{nodesCount}|{relsCount}");
+                    var nodes = new List<NodeDomain>();
+                    var rels = new List<NodeRelationshipDomain>();
+                    foreach (var c in nodeNode)
+                    {
+                        nodes.Add(new NodeDomain()
+                        {
+                            uuid = c.Properties["uuid"].As<string>(),
+                            data = c.Properties["data"].As<string>(),
+                            root = c.Properties["root"].As<string>(),
+                            parent = c.Properties["parent"].As<string>(),
+                        });
+                    }
+                    foreach (var c in relNode)
+                    {
+                        rels.Add(new NodeRelationshipDomain()
+                        {
+                            parentUUID = c[0].Value.As<string>(),
+                            childUUID = c[1].Value.As<string>(),
+                        });
+                    }
                     return new TreeViewDomain()
                     {
                         uuid = root,
@@ -318,17 +338,56 @@ namespace Server.lib.Repository
                 throw ex;
             }
         }
+        public async Task<IList<NodeDomain>> GetChildrenNode(string parent)
+        {
+            await Task.Delay(0);
+            var result = new List<NodeDomain>();
+            try
+            {
+                logger.LogInformation($"{parent}");
+                using (var session = driver.Session())
+                {
+                    var cursor = session.ReadTransaction((tx) =>
+                    {
+                        return tx.Run(@"
+                            MATCH (node {parent: $parent})
+                            RETURN 
+                                node.uuid AS uuid,
+                                node.data AS data,
+                                node.root AS root
+                        ", new { parent });
+                    });
+                    foreach (var record in cursor)
+                    {
+                        var uuid = record["uuid"].As<string>();
+                        var data = record["data"].As<string>();
+                        var root = record["root"].As<string>();
+                        logger.LogInformation($"{uuid}|{data}|{root}");
+                        result.Add(new NodeDomain()
+                        {
+                            uuid = uuid,
+                            data = data,
+                            root = root,
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+            }
+            return result;
+        }
         #endregion 
         #region Tree
         public async Task<bool> DeleteTree(string uuid)
         {
             try
             {
-                //刪除所有節點
-                await DeleteNodeTree(uuid);
+                await Task.Delay(0);
                 using (var session = driver.Session())
                 {
-                    var count = session.WriteTransaction((tx) =>
+                    session.WriteTransaction((tx) =>
                     {
                         // var query = @"
                         //     MATCH (tree: Tree { uuid: $uuid})
@@ -337,15 +396,20 @@ namespace Server.lib.Repository
                         //     RETURN count(tree)
                         // ";
                         // Starting in Neo4j 2.3.x
-                        var query = @"
+                        var parms = new { uuid };
+                        var nodeCount = tx.Run(@"
+                            MATCH (node: Node { root: $uuid})
+                            DETACH DELETE node
+                            RETURN count(node)
+                        ", parms).Single()[0].As<uint>();
+                        var treeCount = tx.Run(@"
                             MATCH (tree: Tree { uuid: $uuid})
                             DETACH DELETE tree
                             RETURN count(tree)
-                        ";
-                        var result = tx.Run(query, new { uuid });
-                        return (result.Single())[0].As<uint>();
+                        ", parms).Single()[0].As<uint>();
+                        logger.LogInformation($"{nodeCount}|{treeCount}|{uuid}");
+                        tx.Success();
                     });
-                    logger.LogInformation($"{count}|{uuid}");
                     return true;
                 }
             }
@@ -355,7 +419,7 @@ namespace Server.lib.Repository
                 return false;
             }
         }
-        public async Task<bool> CreateTree(Domain.TreeDomain tree)
+        public async Task<bool> CreateTree(TreeDomain tree)
         {
             try
             {
@@ -418,10 +482,10 @@ namespace Server.lib.Repository
                 throw ex;
             }
         }
-        public async Task<List<Domain.TreeDomain>> ListAllTrees()
+        public async Task<IList<TreeDomain>> ListAllTrees()
         {
             await Task.Delay(0);
-            var result = new List<Domain.TreeDomain>();
+            var result = new List<TreeDomain>();
             try
             {
                 using (var session = driver.Session())
@@ -475,7 +539,7 @@ namespace Server.lib.Repository
                         });
                         return (result.Single())[0].As<string>();
                     });
-                    logger.LogInformation($"{uuid} {id} {type}");
+                    logger.LogInformation($"{uuid}|{id}|{type}");
                     return true;
                 }
             }
@@ -505,7 +569,7 @@ namespace Server.lib.Repository
                         });
                         return (result.Single())[0].As<string>();
                     });
-                    logger.LogInformation($"{uuid} {id}");
+                    logger.LogInformation($"{uuid}|{id}");
                     return true;
                 }
             }

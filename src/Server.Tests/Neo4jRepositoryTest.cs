@@ -56,11 +56,34 @@ namespace Server.Tests.lib.Repository
                 {
                     for (var i = 0; i < 10; i++)
                     {
-                        var status = await repository.CreateNode(tree.uuid, tree.uuid, $"node-${i}");
-                        if(!status){
+                        var status = await repository.CreateNode(tree.uuid, tree.uuid, $"node-{i}");
+                        if (!status)
+                        {
                             throw new Exception("CreateNodeError");
                         }
                     }
+                    var children = await repository.GetChildrenNode(tree.uuid);
+                    foreach (var child in children)
+                    {
+                        await repository.UpdateNodeData(child.uuid, $"node UpdateNodeData");
+                        for (var i = 0; i < 10; i++)
+                        {
+                            var status = await repository.CreateNode(tree.uuid, child.uuid, $"node-{i}");
+                            if (!status)
+                            {
+                                throw new Exception("CreateNodeError");
+                            }
+                        }
+                    }
+                    if (children.Count > 4)
+                    {
+                        await repository.DeleteNodeTree(children[0].uuid);
+                        await repository.MoveNode(children[1].uuid, children[2].uuid);
+                        await repository.DeleteNode(children[3].uuid);
+                    }
+
+                    var view = await repository.GetNodeView(tree.uuid);
+                    await repository.DeleteTree(tree.uuid);
                 }
             }).GetAwaiter().GetResult();
         }
