@@ -32,7 +32,7 @@ namespace Server.lib.IceBridge
             service.createTree(new Model.TreeModel()
             {
                 uuid = tree.uuid,
-                type = tree.type == TreeType.Binary ? Domain.TreeType.Binary : Domain.TreeType.Normal
+                type = tree.type == TreeType.Binary ? Model.TreeType.Binary : Model.TreeType.Normal
             }).Wait();
         }
 
@@ -43,7 +43,7 @@ namespace Server.lib.IceBridge
             return service.readTree().Result.Select(a => new Tree()
             {
                 uuid = a.uuid,
-                type = a.type == Domain.TreeType.Binary ? TreeType.Binary : TreeType.Normal
+                type = a.type == Model.TreeType.Binary ? TreeType.Binary : TreeType.Normal
             }).ToArray();
         }
 

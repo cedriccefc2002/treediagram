@@ -333,7 +333,7 @@ namespace Server.lib.Repository
                         ", new
                         {
                             uuid = tree.uuid,
-                            type = tree.type == Domain.TreeType.Binary ? "Binary" : "Normal"
+                            type = tree.type,
                         });
                         return (result.Single())[0].As<string>();
                     });
@@ -364,7 +364,7 @@ namespace Server.lib.Repository
                     foreach (var record in cursor)
                     {
                         var uuid = record["uuid"].As<string>();
-                        var type = record["type"].As<string>() == "Binary" ? Domain.TreeType.Binary : Domain.TreeType.Normal;
+                        var type = record["type"].As<string>();
                         logger.LogInformation($"{uuid}|{type}");
                         result.Add(new Domain.TreeDomain()
                         {

@@ -23,13 +23,13 @@ namespace Server.lib.Service
         public async Task<bool> createTree(Model.TreeModel tree)
         {
             var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
-            return await repository.CreateTree(tree);
+            return await repository.CreateTree(tree.TreeDomain());
         }
 
         public async Task<List<Model.TreeModel>> readTree()
         {
             var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
-            return (await repository.ListAllTrees()).Select(a => new Model.TreeModel() { uuid = a.uuid, type = a.type }).ToList();
+            return (await repository.ListAllTrees()).Select(a => Model.TreeModel.FromDomain(a)).ToList();
         }
 
         public async Task<bool> DeleteTree(string uuid)
