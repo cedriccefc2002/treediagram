@@ -92,6 +92,7 @@ namespace Server.lib.Repository
                     logger.LogInformation($"{uuid}|{data}|{root}|{parent}|Start");
                     var id = session.WriteTransaction((tx) =>
                     {
+                        var parms = new { uuid, data, root, parent };
                         var query = @"
                             CREATE (node: Node) 
                             SET 
@@ -101,13 +102,13 @@ namespace Server.lib.Repository
                                 node.parent = $parent
                             RETURN id(node)
                         ";
-                        var result = tx.Run(query, new { uuid, data, root });
+                        var result = tx.Run(query, parms);
                         tx.Run(@"
                             MATCH 
                                 (p {uuid: $parent}), 
                                 (n {uuid: $uuid})
                             CREATE (p)<-[:IsChild]-(n)
-                        ");
+                        ", parms);
                         return (result.Single())[0].As<string>();
                     });
                     logger.LogInformation($"{uuid}|{data}|{root}|{parent}|{id}");
