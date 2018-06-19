@@ -177,6 +177,32 @@ namespace Server.lib.Repository
                 return false;
             }
         }
+        // 讀取子節點的數目
+        public async Task<uint> GetChildrenCount(string uuid)
+        {
+            try
+            {
+                await Task.Delay(0);
+                using (var session = driver.Session())
+                {
+                    var cursor = session.Run(@"
+                        MATCH (p)<-[r:IsChild*1]-()
+                        WHERE p.uuid = $uuid 
+                        WITH collect(r) AS rs
+                        RETURN size(rs)
+                    ", new { uuid });
+                    var result = cursor.Single()[0].As<uint>(); ;
+                    logger.LogInformation($"{uuid} {result}");
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                throw ex;
+            }
+
+        }
         // 刪除節點：子樹會保留
         public async Task<bool> DeleteNode(string uuid)
         {
@@ -193,9 +219,9 @@ namespace Server.lib.Repository
                                 (p)<-[r1:IsChild*0..1]-(node: Node)<-[r2:IsChild*0..1]-(children: Node)
                             WHERE node.uuid = $uuid
                             WITH
-                                COLLECT(children) AS childrens,
-                                HEAD(COLLECT(node)) AS self,
-                                HEAD(COLLECT(p)) AS parent,
+                                collect(children) AS childrens,
+                                head(collect(node)) AS self,
+                                head(collect(p)) AS parent,
                                 r1 AS R1,
                                 r2 AS R2
                             FOREACH (child IN childrens | CREATE (parent)<-[:IsChild]-(child))
@@ -255,7 +281,7 @@ namespace Server.lib.Repository
                 logger.LogInformation($"{root}");
                 using (var session = driver.Session())
                 {
-                    var result = session.WriteTransaction((tx) =>
+                    var result = session.ReadTransaction((tx) =>
                     {
                         return tx.Run(@"
                             MATCH p = (:Tree {uuid: $root})<-[r*0..]-(x:Node)
@@ -398,7 +424,7 @@ namespace Server.lib.Repository
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
-                return true;
+                return false;
             }
         }
     }
