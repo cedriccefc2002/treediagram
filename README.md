@@ -22,7 +22,6 @@ sudo apt-get update
 sudo apt-get install zeroc-ice-compilers
 ```
 
-
 ## Server 專案
 
 ### Server 專案建置
@@ -48,20 +47,16 @@ dotnet add src/Server package Microsoft.Extensions.Configuration.Json
     <ItemGroup>
         <SliceCompile Include="../Slice/*.ice" />
     </ItemGroup>
-    <!--複製設定檔案-->
     <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+        <!--複製NLog設定檔案-->
         <Copy SourceFiles="nlog.config" DestinationFolder="$(OutDir)" />
-    </Target>
-    <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
-        <Copy SourceFiles="nlog.config" DestinationFolder="$(PublishDir)" />
-    </Target>
-    <!--複製appsettings.json設定檔案-->
-    <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+        <!--複製appsettings.json設定檔案-->
         <Copy SourceFiles="appsettings.json" DestinationFolder="$(OutDir)" />
     </Target>
     <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
+        <Copy SourceFiles="nlog.config" DestinationFolder="$(PublishDir)" />
         <Copy SourceFiles="appsettings.json" DestinationFolder="$(PublishDir)" />
-    </Target>
+     </Target>
 </Project>
 ```
 
@@ -91,6 +86,35 @@ dotnet publish --self-contained -c Release -r linux-x64 src/Server
 ./src/Server/bin/Release/netcoreapp2.1/win-x64/Server.exe
 # 執行 win-x86
 ./src/Server/bin/Release/netcoreapp2.1/win-x86/Server.exe
+```
+
+## Server.Tests 測試專案
+
+### Server.Tests 專案建置
+
+```sh
+dotnet new mstest -o src/Server.Tests -lang C#
+dotnet add src/Server.Tests reference src/Server/Server.csproj
+dotnet add src/Server.Tests package Microsoft.Extensions.DependencyInjection
+```
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+    <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+        <!--複製NLog設定檔案-->
+        <Copy SourceFiles="nlog.config" DestinationFolder="$(OutDir)" />
+        <!--複製appsettings.json設定檔案-->
+        <Copy SourceFiles="appsettings.json" DestinationFolder="$(OutDir)" />
+  </Target>
+</Project>
+```
+
+### Server.Tests 專案執行：
+
+```sh
+cd src/Server.Tests
+dotnet test
 ```
 
 ## ConsoleClient 專案

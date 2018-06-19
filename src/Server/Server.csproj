@@ -31,20 +31,14 @@
     <PackageReference Include="zeroc.icebuilder.msbuild" Version="5.0.4" />
   </ItemGroup>
 
-  <!--複製NLog設定檔案-->
   <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+    <!--複製NLog設定檔案-->
     <Copy SourceFiles="nlog.config" DestinationFolder="$(OutDir)" />
-  </Target>
-  <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
-    <Copy SourceFiles="nlog.config" DestinationFolder="$(PublishDir)" />
-  </Target>
-
-  <!--複製appsettings.json設定檔案-->
-  <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+    <!--複製appsettings.json設定檔案-->
     <Copy SourceFiles="appsettings.json" DestinationFolder="$(OutDir)" />
   </Target>
   <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
+    <Copy SourceFiles="nlog.config" DestinationFolder="$(PublishDir)" />
     <Copy SourceFiles="appsettings.json" DestinationFolder="$(PublishDir)" />
   </Target>
-
 </Project>

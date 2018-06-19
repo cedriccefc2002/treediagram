@@ -475,7 +475,6 @@ namespace Server.lib.Repository
             }
         }
         #endregion
-
         public async Task<bool> Status()
         {
             try

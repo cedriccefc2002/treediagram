@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.2.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Server\Server.csproj" />
+  </ItemGroup>
+
+  <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+    <!--複製NLog設定檔案-->
+    <Copy SourceFiles="nlog.config" DestinationFolder="$(OutDir)" />
+    <!--複製appsettings.json設定檔案-->
+    <Copy SourceFiles="appsettings.json" DestinationFolder="$(OutDir)" />
+  </Target>
+
+</Project>
