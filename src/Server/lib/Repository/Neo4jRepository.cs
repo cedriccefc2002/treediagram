@@ -160,7 +160,7 @@ namespace Server.lib.Repository
                     session.WriteTransaction((tx) =>
                     {
                         var query = @"
-                            MATCH ()<-[r1:IsChild*0..1]-(node: Node)<-[r2:IsChild*]-(children: Node)-[r3:IsChild*0..1]-() 
+                            MATCH ()<-[r1:IsChild*0..1]-(node)<-[r2:IsChild*]-(children: Node)-[r3:IsChild*0..1]-() 
                             WHERE node.uuid = $uuid
                             FOREACH (x IN r1 | DELETE x)
                             FOREACH (x IN r2 | DELETE x)
@@ -323,7 +323,8 @@ namespace Server.lib.Repository
         {
             try
             {
-                await Task.Delay(0);
+                //刪除所有節點
+                await DeleteNodeTree(uuid);
                 using (var session = driver.Session())
                 {
                     var count = session.WriteTransaction((tx) =>
@@ -394,12 +395,20 @@ namespace Server.lib.Repository
                 logger.LogInformation($"{uuid}");
                 using (var session = driver.Session())
                 {
-                    var cursor = session.Run(@"
+                    var result = session.Run(@"
                         MATCH (tree: Tree) 
                         Where tree.uuid = $uuid
-                        RETURN tree
-                    ");
-                    return cursor.Single()[0].As<TreeDomain>();
+                        RETURN 
+                            tree.uuid as uuid, 
+                            tree.type as type,
+                            tree.lastUpdateDate as lastUpdateDate
+                    ", new { uuid }).Peek();
+                    return new Domain.TreeDomain()
+                    {
+                        uuid = result["uuid"].As<string>(),
+                        type = result["type"].As<string>(),
+                        lastUpdateDate = result["lastUpdateDate"].As<string>(),
+                    };
                 }
             }
             catch (Exception ex)
@@ -444,6 +453,37 @@ namespace Server.lib.Repository
             }
             return result;
         }
+        public async Task<bool> UpdateTreeType(string uuid, string type)
+        {
+            try
+            {
+                await Task.Delay(0);
+                using (var session = driver.Session())
+                {
+                    var id = session.WriteTransaction((tx) =>
+                    {
+                        var result = tx.Run(@"
+                            MATCH (tree: Tree) 
+                            WHERE tree.uuid = $uuid
+                            SET tree.type = $type
+                            RETURN id(tree)
+                        ", new
+                        {
+                            uuid,
+                            type,
+                        });
+                        return (result.Single())[0].As<string>();
+                    });
+                    logger.LogInformation($"{uuid} {id} {type}");
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                return false;
+            }
+        }
         public async Task<bool> UpdateTreeDateTime(string uuid)
         {
             try
@@ -460,7 +500,7 @@ namespace Server.lib.Repository
                             RETURN id(tree)
                         ", new
                         {
-                            uuid = uuid,
+                            uuid,
                         });
                         return (result.Single())[0].As<string>();
                     });
