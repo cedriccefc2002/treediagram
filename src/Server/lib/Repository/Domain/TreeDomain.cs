@@ -4,5 +4,6 @@ namespace Server.lib.Repository.Domain
     {
         public string uuid { get; set; }
         public string type { get; set; }
+        public string lastUpdateDate { get; set; }
     }
 }

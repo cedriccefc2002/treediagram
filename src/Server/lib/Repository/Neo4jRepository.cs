@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Neo4j.Driver.V1;
 using Server.lib.Config;
+using Server.lib.Repository.Domain;
 
 namespace Server.lib.Repository
 {
@@ -273,7 +274,7 @@ namespace Server.lib.Repository
             }
         }
         // 檢視圖
-        public async Task<bool> GetNodeView(string root)
+        public async Task<TreeViewDomain> GetNodeView(string root)
         {
             try
             {
@@ -287,22 +288,33 @@ namespace Server.lib.Repository
                             MATCH p = (:Tree {uuid: $root})<-[r*0..]-(x:Node)
                             WITH
                                 collect(DISTINCT x) as nodes, 
-                                [r in collect(DISTINCT last(r)) | [startNode(r).uuid, endNode(r).uuid ]] as rels
+                                [
+                                    r in collect(DISTINCT last(r)) | 
+                                    { 
+                                        parentUUID: startNode(r).uuid, 
+                                        childUUID:endNode(r).uuid 
+                                    }
+                                ] as rels
                             RETURN size(nodes) AS nodesCount,size(rels) AS relsCount, nodes, rels
                         ", new { root });
                     }).Peek();
-                    var nodesCount = result["nodesCount"].As<ulong>();
-                    var relsCount = result["relsCount"].As<ulong>();
-                    var nodes = result["nodes"].As<List<dynamic>>();
-                    var rels = result["rels"].As<List<dynamic>>();
+                    var nodesCount = result["nodesCount"].As<uint>();
+                    var relsCount = result["relsCount"].As<uint>();
+                    var nodes = result["nodes"].As<List<Domain.NodeDomain>>();
+                    var rels = result["rels"].As<List<Domain.NodeRelationshipDomain>>();
                     logger.LogInformation($"{nodesCount}|{relsCount}");
-                    return true;
+                    return new TreeViewDomain()
+                    {
+                        uuid = root,
+                        nodes = nodes,
+                        rels = rels
+                    };
                 }
             }
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
-                return false;
+                throw ex;
             }
         }
         #endregion 
@@ -354,7 +366,8 @@ namespace Server.lib.Repository
                             CREATE (tree: Tree) 
                             SET 
                                 tree.uuid = $uuid,
-                                tree.type = $type
+                                tree.type = $type,
+                                tree.lastUpdateDate = datetime.realtime()
                             RETURN id(tree)
                         ", new
                         {
@@ -385,17 +398,20 @@ namespace Server.lib.Repository
                         MATCH (tree: Tree) 
                         RETURN 
                             tree.uuid as uuid, 
-                            tree.type as type
+                            tree.type as type,
+                            tree.lastUpdateDate as lastUpdateDate
                     ");
                     foreach (var record in cursor)
                     {
                         var uuid = record["uuid"].As<string>();
                         var type = record["type"].As<string>();
+                        var lastUpdateDate = record["lastUpdateDate"].As<string>();
                         logger.LogInformation($"{uuid}|{type}");
                         result.Add(new Domain.TreeDomain()
                         {
                             uuid = uuid,
-                            type = type
+                            type = type,
+                            lastUpdateDate = lastUpdateDate,
                         });
                     }
                 }
@@ -405,6 +421,36 @@ namespace Server.lib.Repository
                 logger.LogError(ex.Message);
             }
             return result;
+        }
+        public async Task<bool> UpdateTreeDateTime(string uuid)
+        {
+            try
+            {
+                await Task.Delay(0);
+                using (var session = driver.Session())
+                {
+                    var id = session.WriteTransaction((tx) =>
+                    {
+                        var result = tx.Run(@"
+                            MATCH (tree: Tree) 
+                            WHERE tree.uuid = $uuid
+                            SET tree.lastUpdateDate = datetime.realtime()
+                            RETURN id(tree)
+                        ", new
+                        {
+                            uuid = uuid,
+                        });
+                        return (result.Single())[0].As<string>();
+                    });
+                    logger.LogInformation($"{uuid} {id}");
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                return false;
+            }
         }
         #endregion
 
