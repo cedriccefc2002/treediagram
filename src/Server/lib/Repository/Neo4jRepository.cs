@@ -386,6 +386,28 @@ namespace Server.lib.Repository
                 return false;
             }
         }
+        public async Task<TreeDomain> GetTreeByUUID(string uuid)
+        {
+            await Task.Delay(0);
+            try
+            {
+                logger.LogInformation($"{uuid}");
+                using (var session = driver.Session())
+                {
+                    var cursor = session.Run(@"
+                        MATCH (tree: Tree) 
+                        Where tree.uuid = $uuid
+                        RETURN tree
+                    ");
+                    return cursor.Single()[0].As<TreeDomain>();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                throw ex;
+            }
+        }
         public async Task<List<Domain.TreeDomain>> ListAllTrees()
         {
             await Task.Delay(0);
