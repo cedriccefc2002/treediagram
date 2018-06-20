@@ -7,15 +7,22 @@ using Model = Server.lib.Service.Model;
 using Domain = Server.lib.Repository.Domain;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
+using System;
+using System.Collections.Generic;
 
 namespace Server.lib.IceBridge
 {
     public class Server : TreeDiagram.ServerDisp_
     {
         private readonly ILogger<Server> logger;
+        private readonly IList<ServerEventPrxHelper> clients = new List<ServerEventPrxHelper>();
         public Server(ILogger<Server> logger)
         {
             this.logger = logger;
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.EventService>();
+            service.evtTreeListUpdate += new Service.TreeListUpdateDelegate(TreeListUpdateHandler);
+            service.evtTreeUpdate += new Service.TreeUpdateDelegate(TreeUpdateHandler);
+            service.evtNodeUpdate += new Service.NodeUpdateDelegate(NodeUpdateHandler);
         }
 
         public override ServerStatus status(Current current)
@@ -64,25 +71,54 @@ namespace Server.lib.IceBridge
             service.DeleteTree(uuid).Wait();
         }
 
-
+        private void ClientEventHandler(Action<ServerEventPrxHelper> act)
+        {
+            foreach (var client in clients)
+            {
+                try
+                {
+                    act(client);
+                }
+                catch (System.Exception ex)
+                {
+                    logger.LogError(ex.Message);
+                    clients.Remove(client);
+                }
+            }
+        }
+        private void TreeListUpdateHandler()
+        {
+            ClientEventHandler(c => c.TreeListUpdate());
+        }
+        private void TreeUpdateHandler(string uuid)
+        {
+            ClientEventHandler(c => c.TreeUpdate(uuid));
+        }
+        private void NodeUpdateHandler(string uuid, string data)
+        {
+            ClientEventHandler(c => c.NodeUpdate(uuid, data));
+        }
         public override void initEvent(ServerEventPrx serverEvent, Current current)
         {
-            Task.Run(async () =>
-            {
-                while (true)
-                {
-                    try
-                    {
-                        ((ServerEventPrxHelper)serverEvent).TreeListUpdate();
-                        await Task.Delay(6000);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(ex.Message);
-                        throw ex;
-                    }
-                }
-            });
+            clients.Add(((ServerEventPrxHelper)serverEvent));
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.EventService>();
+            var task = service.DoTreeListUpdate();
+            // Task.Run(async () =>
+            // {
+            //     while (true)
+            //     {
+            //         try
+            //         {
+            //             ((ServerEventPrxHelper)serverEvent).TreeListUpdate();
+            //             await Task.Delay(6000);
+            //         }
+            //         catch (Exception ex)
+            //         {
+            //             logger.LogError(ex.Message);
+            //             throw ex;
+            //         }
+            //     }
+            // });
             logger.LogInformation("");
         }
     }
