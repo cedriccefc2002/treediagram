@@ -67,13 +67,20 @@ namespace Server.lib.IceBridge
 
         public override void initEvent(ServerEventPrx serverEvent, Current current)
         {
-            // ((ServerEvent)serverEvent).NodeUpdate("sssss", "");
             Task.Run(async () =>
             {
                 while (true)
                 {
-                    ((ServerEventPrxHelper)serverEvent).TreeListUpdate();
-                    await Task.Delay(6000);
+                    try
+                    {
+                        ((ServerEventPrxHelper)serverEvent).TreeListUpdate();
+                        await Task.Delay(6000);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex.Message);
+                        throw ex;
+                    }
                 }
             });
             logger.LogInformation("");

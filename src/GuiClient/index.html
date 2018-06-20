@@ -29,8 +29,9 @@
         }
         let communicator;
         class ServerEventI extends TreeDiagram.ServerEvent {
-            TreeListUpdate() {
+            TreeListUpdate(current) {
                 console.log("TreeListUpdate")
+                console.dir(current)
             }
         }
 
@@ -38,6 +39,7 @@
             try {
                 communicator = Ice.initialize([
                     "--Ice.Default.Router=PublicRouter/router:tcp -h 127.0.0.1 -p 10001",
+                    "--Ice.ACM.Client.Heartbeat=3"
                     // "--Ice.RetryIntervals=-1",
                     // "--Ice.ACM.Client=0"
                 ]);
@@ -49,13 +51,16 @@
                     router.getCategoryForClient(),
                     communicator.createObjectAdapterWithRouter("", router)]
                 )
-                console.log(category);
+                console.log(timeout);
                 console.log(category);
                 console.dir(adapter);
-                // connection.setACM(timeout, undefined, Ice.ACMHeartbeat.HeartbeatAlways);
-                // connection.setCloseCallback(() => {
-                //     console.log("Connection lost");
-                // });
+                const connection = router.ice_getCachedConnection();
+                // 心跳
+                // connection.setACM(undefined, undefined, Ice.ACMHeartbeat.HeartbeatAlways);
+                connection.setCloseCallback(() => {
+                    //當與Glacier2連線中斷時觸發
+                    console.log("Connection lost");
+                });
 
                 let proxy = communicator.stringToProxy("Server:tcp -h 127.0.0.1 -p 10000");
                 const serverEvent = TreeDiagram.ServerEventPrx.uncheckedCast(adapter.add(new ServerEventI(), new Ice.Identity("serverEvent", category)));
