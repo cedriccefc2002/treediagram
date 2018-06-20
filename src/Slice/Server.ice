@@ -9,6 +9,12 @@ module TreeDiagram
         Fault  
     }
 
+    interface ServerEvent {
+        void TreeListUpdate(); 
+        void TreeUpdate(string uuid);
+        void NodeUpdate(string uuid, string data); 
+    };
+
     interface Server
     {
         // 查詢伺服器狀態
@@ -20,5 +26,6 @@ module TreeDiagram
         Tree readSingleTree(string uuid);
         idempotent void updateTree(Tree tree);
         idempotent void deleteTree(string uuid);
+        void initEvent(ServerEvent* event);
     }
 }

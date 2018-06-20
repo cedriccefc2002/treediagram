@@ -27,32 +27,47 @@
                 setTimeout(resulve, timeout);
             })
         }
+        let communicator;
+        class ServerEventI extends TreeDiagram.ServerEvent {
+            TreeListUpdate() {
+                console.log("TreeListUpdate")
+            }
+        }
+
         async function create() {
-            let ic;
             try {
-                ic = Ice.initialize([
+                communicator = Ice.initialize([
                     "--Ice.Default.Router=PublicRouter/router:tcp -h 127.0.0.1 -p 10001",
-                    "--Ice.RetryIntervals=-1",
-                    "--Ice.ACM.Client=0"
+                    // "--Ice.RetryIntervals=-1",
+                    // "--Ice.ACM.Client=0"
                 ]);
-
                 // const base = ic.stringToProxy("Server:default -h localhost -p 10000");
+                let router = await Glacier2.RouterPrx.checkedCast(communicator.getDefaultRouter());
+                let session = await router.createSession("username", "password");
+                const [timeout, category, adapter] = await Promise.all([
+                    router.getSessionTimeout(),
+                    router.getCategoryForClient(),
+                    communicator.createObjectAdapterWithRouter("", router)]
+                )
+                console.log(category);
+                console.log(category);
+                console.dir(adapter);
+                // connection.setACM(timeout, undefined, Ice.ACMHeartbeat.HeartbeatAlways);
+                // connection.setCloseCallback(() => {
+                //     console.log("Connection lost");
+                // });
 
-
-
-                let defaultRouter = ic.getDefaultRouter();
-                var router = await Glacier2.RouterPrx.checkedCast(ic.getDefaultRouter());
-                console.dir(router);
-                var session = await router.createSession("username", "password");
-                console.dir(session);
-                let proxy = ic.stringToProxy("Server:tcp -h 127.0.0.1 -p 10000");
+                let proxy = communicator.stringToProxy("Server:tcp -h 127.0.0.1 -p 10000");
+                const serverEvent = TreeDiagram.ServerEventPrx.uncheckedCast(adapter.add(new ServerEventI(), new Ice.Identity("serverEvent", category)));
                 const server = await TreeDiagram.ServerPrx.checkedCast(proxy);
                 if (server) {
+                    await server.initEvent(serverEvent);
                     // let type = document.getElementById("data").value
-                    await server.createTree(new TreeDiagram.Tree(uuidv1(), ""));
-                    let readTree = await server.readTree();
-                    console.dir(readTree);
-                    await server.deleteTree(readTree[0].uuid);
+                    // await server.initEvent(new TreeDiagram.ServerEventPrx);
+                    // await server.createTree(new TreeDiagram.Tree(uuidv1(), ""));
+                    // let readTree = await server.readTree();
+                    // console.dir(readTree);
+                    // await server.deleteTree(readTree[0].uuid);
                 }
                 else {
                     console.log("Invalid proxy");
@@ -63,9 +78,9 @@
                 //     process.exitCode = 1;
             }
             finally {
-                if (ic) {
-                    await ic.destroy();
-                }
+                // if (communicator) {
+                //     await communicator.destroy();
+                // }
             }
         };
         async function status() {

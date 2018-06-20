@@ -63,5 +63,20 @@ namespace Server.lib.IceBridge
             var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             service.DeleteTree(uuid).Wait();
         }
+
+
+        public override void initEvent(ServerEventPrx serverEvent, Current current)
+        {
+            // ((ServerEvent)serverEvent).NodeUpdate("sssss", "");
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    ((ServerEventPrxHelper)serverEvent).TreeListUpdate();
+                    await Task.Delay(6000);
+                }
+            });
+            logger.LogInformation("");
+        }
     }
 }
