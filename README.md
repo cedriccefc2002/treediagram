@@ -49,6 +49,15 @@ sudo apt-get install zeroc-ice-compilers
 
 ## Server 專案
 
+### Server分層架構
+
+- `lib/Repository`： 提供資料庫存取
+- `lib/Repository/Domain`：**Repository**產生的資料或呼叫的變數型態
+- `lib/Service`： 提供邏輯判斷程序
+- `lib/Service/Model`：**Service**產生的資料或呼叫的變數型態
+- `lib/IceBridge`：提供Ice產生Api的橋接
+- `IceService.cs`：可獨立執行或嵌入`ICEbox`
+
 ### Server 專案建置
 
 ```sh
@@ -267,7 +276,7 @@ else
 
 1. **Ice**框架讓Server主動推播資料到Client?
 
-使用 `Glacier2`
+    使用 `Glacier2`
 
 1. 複寫呼叫**Ice**產生物件的方法是非同步的，如果裡面有用到`Neo4j.Driver.V1.ISession`的`WriteTransactionAsync`的**async**方法，會導致**Block**無回應
 
