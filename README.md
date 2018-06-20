@@ -117,7 +117,7 @@ dotnet publish --self-contained -c Release -r linux-x64 src/Server
 
 - 使用 IceGrid + IceBox
 
-- 使用 [nssm](http://nssm.cc/usage)
+- 使用 [nssm](http://nssm.cc/usage) （Licence：[公有領域](https://git.nssm.cc/?p=nssm.git;a=blob_plain;f=README.txt)）
 
 ```bat
 nssm install treediagram_server
