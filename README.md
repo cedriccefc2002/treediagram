@@ -115,11 +115,17 @@ dotnet publish --self-contained -c Release -r linux-x64 src/Server
 
 ```sh
 # 執行 linux-x64
-./src/Server/bin/Release/netcoreapp2.1/linux-x64/Server
+cd ./src/Server/bin/Release/netcoreapp2.1/linux-x64/publish/
+./Server
+```
+
+```bat
 # 執行 win-x64
-./src/Server/bin/Release/netcoreapp2.1/win-x64/Server.exe
+cd .\src\Server\bin\Release\netcoreapp2.1\win-x64/publish\
+.\Server.exe
 # 執行 win-x86
-./src/Server/bin/Release/netcoreapp2.1/win-x86/Server.exe
+cd .\src\Server\bin\Release\netcoreapp2.1\win-x86/publish\
+.\Server.exe
 ```
 
 ### Server 專案 佈署成 windows 服務：
