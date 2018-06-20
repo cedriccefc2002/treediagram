@@ -40,7 +40,7 @@ namespace Server.lib.IceBridge
         {
             logger.LogInformation("");
             var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
-            return service.readTree().Result.Select(a => new Tree()
+            return service.ListAllTrees().Result.Select(a => new Tree()
             {
                 uuid = a.uuid,
                 type = a.type == Model.TreeType.Binary ? TreeType.Binary : TreeType.Normal
