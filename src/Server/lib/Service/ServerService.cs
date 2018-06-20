@@ -92,5 +92,11 @@ namespace Server.lib.Service
             var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
             return (await repository.DeleteNode(uuid));
         }
+        public async Task<TreeViewModel> GetNodeView(string uuid)
+        {
+            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
+            return TreeViewModel.FromDomain(await repository.GetNodeView(uuid));
+        }
+
     }
 }

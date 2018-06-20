@@ -80,7 +80,7 @@ namespace Server.Tests.lib.Repository
                         await service.DeleteNode(children[3].uuid);
                     }
 
-                    // var view = await service.GetNodeView(tree.uuid);
+                    var view = await service.GetNodeView(tree.uuid);
                     await service.DeleteTree(tree.uuid);
                 }
             }).GetAwaiter().GetResult();
