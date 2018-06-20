@@ -25,16 +25,16 @@ namespace Server.lib.IceBridge
             service.evtNodeUpdate += new Service.NodeUpdateDelegate(NodeUpdateHandler);
         }
 
-        public override ServerStatus status(Current current)
-        {
-            logger.LogInformation($"");
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
-            return service.Status().Result ? ServerStatus.Normal : ServerStatus.Fault; ;
-        }
+        // public override ServerStatus status(Current current)
+        // {
+        //     logger.LogInformation($"");
+        //     var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+        //     return service.Status().Result ? ServerStatus.Normal : ServerStatus.Fault; ;
+        // }
 
         public override void createTree(Tree tree, Current current)
         {
-            logger.LogInformation("");
+            logger.LogInformation($"{tree.uuid}");
             var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             service.createTree(new Model.TreeModel()
             {
@@ -43,7 +43,7 @@ namespace Server.lib.IceBridge
             }).Wait();
         }
 
-        public override Tree[] readTree(Current current)
+        public override Tree[] listAllTrees(Current current)
         {
             logger.LogInformation("");
             var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
@@ -54,21 +54,101 @@ namespace Server.lib.IceBridge
             }).ToArray();
         }
 
-        public override Tree readSingleTree(string uuid, Current current)
+        public override Tree getTreeByUUID(string uuid, Current current)
         {
-            logger.LogInformation("");
-            return new Tree() { uuid = uuid };
-        }
-        public override void updateTree(Tree tree, Current current)
-        {
-            logger.LogInformation("");
+            logger.LogInformation($"{uuid}");
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+            var result = service.GetTreeByUUID(uuid).Result;
+            return new Tree()
+            {
+                uuid = result.uuid,
+                type = result.type == Model.TreeType.Binary ? TreeType.Binary : TreeType.Normal
+            };
         }
 
         public override void deleteTree(string uuid, Current current)
         {
-            logger.LogInformation("");
+            logger.LogInformation($"{uuid}");
             var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             service.DeleteTree(uuid).Wait();
+        }
+
+        public override long getChildrenCount(string uuid, Current current)
+        {
+            logger.LogInformation($"{uuid}");
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+            return service.GetChildrenCount(uuid).Result;
+        }
+
+        public override void createNode(string rootUUID, string parentUUID, string data, Current current)
+        {
+            logger.LogInformation($"{rootUUID}|{parentUUID}|{data}");
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+            service.CreateNode(rootUUID, parentUUID, data).Wait();
+        }
+
+        public override Node[] getChildrenNode(string uuid, Current current)
+        {
+            logger.LogInformation($"{uuid}");
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+            return service.GetChildrenNode(uuid).Result.Select(a => new Node()
+            {
+                uuid = a.uuid,
+                root = a.root,
+                parent = a.parent,
+                data = a.data,
+            }).ToArray();
+        }
+
+        public override void updateNodeData(string uuid, string data, Current current)
+        {
+            logger.LogInformation($"{uuid}|{data}");
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+            service.UpdateNodeData(uuid, data).Wait();
+        }
+
+        public override void deleteNodeTree(string uuid, Current current)
+        {
+            logger.LogInformation($"{uuid}");
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+            service.DeleteNodeTree(uuid).Wait();
+        }
+
+        public override void moveNode(string uuid, string newParent, Current current)
+        {
+            logger.LogInformation($"{uuid}");
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+            service.MoveNode(uuid, newParent).Wait();
+        }
+
+        public override void deleteNode(string uuid, Current current)
+        {
+            logger.LogInformation($"{uuid}");
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+            service.DeleteNode(uuid).Wait();
+        }
+
+        public override TreeView getNodeView(string uuid, Current current)
+        {
+            logger.LogInformation($"{uuid}");
+            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+            var result = service.GetNodeView(uuid).Result;
+            return new TreeView()
+            {
+                uuid = result.uuid,
+                nodes = result.nodes.Select(a => new Node()
+                {
+                    uuid = a.uuid,
+                    root = a.root,
+                    parent = a.parent,
+                    data = a.data,
+                }).ToArray(),
+                rels = result.rels.Select(a => new NodeRelationship()
+                {
+                    parentUUID = a.parentUUID,
+                    childUUID = a.childUUID,
+                }).ToArray(),
+            };
         }
 
         private void ClientEventHandler(Func<ServerEventPrxHelper, Task> act)

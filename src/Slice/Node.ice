@@ -5,5 +5,9 @@ module TreeDiagram
     {
         string uuid;
         string data;
+        string root;
+        string parent;
     }
+
+    sequence<Node> Nodes;
 }

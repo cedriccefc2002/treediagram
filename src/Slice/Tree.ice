@@ -1,22 +1,24 @@
-#include <Node.ice>
+// #include <Node.ice>
 
 module TreeDiagram
 {
-    sequence<Node> Nodes;
+    // sequence<Node> Nodes;
 
     enum TreeType { 
         Normal,
         Binary  
     }
 
-    class TreeNode extends Node
+    // class TreeNode extends Node
+    // {
+    //     Nodes children;
+    // }
+
+    class Tree // extends Node
     {
-        Nodes children;
+        string uuid;
+        TreeType type;
     }
 
-    class Tree extends Node
-    {
-        TreeType type;
-        TreeNode root;
-    }
+    sequence<Tree> Trees;
 }

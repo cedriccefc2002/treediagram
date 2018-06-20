@@ -38,13 +38,13 @@ namespace Server.lib.Service
             return await repository.DeleteTree(uuid);
         }
 
-        private async Task<TreeModel> GetTreeByUUID(string uuid)
+        public async Task<TreeModel> GetTreeByUUID(string uuid)
         {
             var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
             return TreeModel.FromDomain(await repository.GetTreeByUUID(uuid));
         }
 
-        private async Task<uint> GetChildrenCount(string uuid)
+        public async Task<uint> GetChildrenCount(string uuid)
         {
             var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
             return await repository.GetChildrenCount(uuid);
