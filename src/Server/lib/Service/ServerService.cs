@@ -11,47 +11,48 @@ namespace Server.lib.Service
     public class ServerService
     {
         private readonly ILogger<ServerService> logger;
+        private readonly EventService eventService;
+        private readonly Neo4jRepository repository;
         public ServerService(ILogger<ServerService> logger)
         {
             this.logger = logger;
+            eventService = lib.Provider.serviceProvider.GetRequiredService<Service.EventService>();
+            repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
         }
         public async Task<bool> Status()
         {
-            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
             return await repository.Status();
         }
         public async Task<bool> createTree(Model.TreeModel tree)
         {
-            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
-            return await repository.CreateTree(tree.TreeDomain());
+            var result = await repository.CreateTree(tree.TreeDomain());
+            var t = eventService.DoTreeListUpdate();
+            return result;
         }
 
         public async Task<List<Model.TreeModel>> ListAllTrees()
         {
-            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
             return (await repository.ListAllTrees()).Select(a => Model.TreeModel.FromDomain(a)).ToList();
         }
 
         public async Task<bool> DeleteTree(string uuid)
         {
-            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
-            return await repository.DeleteTree(uuid);
+            var result = await repository.DeleteTree(uuid);
+            var t = eventService.DoTreeListUpdate();
+            return result;
         }
 
         public async Task<TreeModel> GetTreeByUUID(string uuid)
         {
-            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
             return TreeModel.FromDomain(await repository.GetTreeByUUID(uuid));
         }
 
         public async Task<uint> GetChildrenCount(string uuid)
         {
-            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
             return await repository.GetChildrenCount(uuid);
         }
         public async Task<bool> CreateNode(string rootUUID, string parentUUID, string data)
         {
-            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
             var tree = await GetTreeByUUID(rootUUID);
             if (tree.type == TreeType.Binary)
             {
@@ -60,43 +61,46 @@ namespace Server.lib.Service
                     return false;
                 }
             }
-            return await repository.CreateNode(rootUUID, parentUUID, data);
+            var result = await repository.CreateNode(rootUUID, parentUUID, data);
+            var t = eventService.DoTreeUpdate(rootUUID);
+            return result;
         }
 
         public async Task<List<Model.NodeModel>> GetChildrenNode(string uuid)
         {
-            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
             return (await repository.GetChildrenNode(uuid)).Select(a => Model.NodeModel.FromDomain(a)).ToList();
         }
 
         public async Task<bool> UpdateNodeData(string uuid, string data)
         {
-            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
-            return (await repository.UpdateNodeData(uuid, data));
+            var result = (await repository.UpdateNodeData(uuid, data));
+            var t = eventService.DoNodeUpdate(uuid, data);
+            return result;
         }
 
         public async Task<bool> DeleteNodeTree(string uuid)
         {
-            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
-            return (await repository.DeleteNodeTree(uuid));
+            var result= await repository.DeleteNodeTree(uuid);
+            var t = eventService.DoTreeUpdate(uuid);
+            return result;
         }
 
         public async Task<bool> MoveNode(string uuid, string newParent)
         {
-            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
-            return (await repository.MoveNode(uuid, newParent));
+            var result = await repository.MoveNode(uuid, newParent);
+            var t = eventService.DoTreeUpdate(uuid);
+            return result;
         }
 
         public async Task<bool> DeleteNode(string uuid)
         {
-            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
-            return (await repository.DeleteNode(uuid));
+            var result = await repository.DeleteNode(uuid);
+            var t = eventService.DoTreeUpdate(uuid);
+            return result;
         }
         public async Task<TreeViewModel> GetNodeView(string uuid)
         {
-            var repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
             return TreeViewModel.FromDomain(await repository.GetNodeView(uuid));
         }
-
     }
 }

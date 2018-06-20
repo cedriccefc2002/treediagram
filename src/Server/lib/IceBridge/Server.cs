@@ -16,26 +16,21 @@ namespace Server.lib.IceBridge
     {
         private readonly ILogger<Server> logger;
         private readonly IList<ServerEventPrxHelper> clients = new List<ServerEventPrxHelper>();
+
+        private readonly Service.ServerService service;
         public Server(ILogger<Server> logger)
         {
             this.logger = logger;
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.EventService>();
-            service.evtTreeListUpdate += new Service.TreeListUpdateDelegate(TreeListUpdateHandler);
-            service.evtTreeUpdate += new Service.TreeUpdateDelegate(TreeUpdateHandler);
-            service.evtNodeUpdate += new Service.NodeUpdateDelegate(NodeUpdateHandler);
+            service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+            var eventService = lib.Provider.serviceProvider.GetRequiredService<Service.EventService>();
+            eventService.evtTreeListUpdate += new Service.TreeListUpdateDelegate(TreeListUpdateHandler);
+            eventService.evtTreeUpdate += new Service.TreeUpdateDelegate(TreeUpdateHandler);
+            eventService.evtNodeUpdate += new Service.NodeUpdateDelegate(NodeUpdateHandler);
         }
-
-        // public override ServerStatus status(Current current)
-        // {
-        //     logger.LogInformation($"");
-        //     var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
-        //     return service.Status().Result ? ServerStatus.Normal : ServerStatus.Fault; ;
-        // }
 
         public override void createTree(Tree tree, Current current)
         {
             logger.LogInformation($"{tree.uuid}");
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             service.createTree(new Model.TreeModel()
             {
                 uuid = tree.uuid,
@@ -46,7 +41,6 @@ namespace Server.lib.IceBridge
         public override Tree[] listAllTrees(Current current)
         {
             logger.LogInformation("");
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             return service.ListAllTrees().Result.Select(a => new Tree()
             {
                 uuid = a.uuid,
@@ -57,7 +51,6 @@ namespace Server.lib.IceBridge
         public override Tree getTreeByUUID(string uuid, Current current)
         {
             logger.LogInformation($"{uuid}");
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             var result = service.GetTreeByUUID(uuid).Result;
             return new Tree()
             {
@@ -69,28 +62,24 @@ namespace Server.lib.IceBridge
         public override void deleteTree(string uuid, Current current)
         {
             logger.LogInformation($"{uuid}");
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             service.DeleteTree(uuid).Wait();
         }
 
         public override long getChildrenCount(string uuid, Current current)
         {
             logger.LogInformation($"{uuid}");
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             return service.GetChildrenCount(uuid).Result;
         }
 
         public override void createNode(string rootUUID, string parentUUID, string data, Current current)
         {
             logger.LogInformation($"{rootUUID}|{parentUUID}|{data}");
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             service.CreateNode(rootUUID, parentUUID, data).Wait();
         }
 
         public override Node[] getChildrenNode(string uuid, Current current)
         {
             logger.LogInformation($"{uuid}");
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             return service.GetChildrenNode(uuid).Result.Select(a => new Node()
             {
                 uuid = a.uuid,
@@ -103,35 +92,30 @@ namespace Server.lib.IceBridge
         public override void updateNodeData(string uuid, string data, Current current)
         {
             logger.LogInformation($"{uuid}|{data}");
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             service.UpdateNodeData(uuid, data).Wait();
         }
 
         public override void deleteNodeTree(string uuid, Current current)
         {
             logger.LogInformation($"{uuid}");
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             service.DeleteNodeTree(uuid).Wait();
         }
 
         public override void moveNode(string uuid, string newParent, Current current)
         {
             logger.LogInformation($"{uuid}");
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             service.MoveNode(uuid, newParent).Wait();
         }
 
         public override void deleteNode(string uuid, Current current)
         {
             logger.LogInformation($"{uuid}");
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             service.DeleteNode(uuid).Wait();
         }
 
         public override TreeView getNodeView(string uuid, Current current)
         {
             logger.LogInformation($"{uuid}");
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
             var result = service.GetNodeView(uuid).Result;
             return new TreeView()
             {
@@ -202,7 +186,7 @@ namespace Server.lib.IceBridge
             //         }
             //     }
             // });
-            logger.LogInformation("");
+            logger.LogInformation($"{serverEvent.ice_getAdapterId()}");
         }
     }
 }
