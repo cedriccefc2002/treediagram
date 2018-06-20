@@ -113,6 +113,18 @@ dotnet publish --self-contained -c Release -r linux-x64 src/Server
 ./src/Server/bin/Release/netcoreapp2.1/win-x86/Server.exe
 ```
 
+### Server 專案 佈署成 windows 服務：
+
+- 使用 IceGrid + IceBox
+
+- 使用 [nssm](http://nssm.cc/usage)
+
+```bat
+nssm install treediagram_server
+```
+
+![連線測試](http://nssm.cc/images/install_application.png)
+
 ## Server.Tests 測試專案
 
 ### Server.Tests 專案建置
