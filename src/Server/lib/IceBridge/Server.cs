@@ -71,10 +71,12 @@ namespace Server.lib.IceBridge
             service.DeleteTree(uuid).Wait();
         }
 
-        private void ClientEventHandler(Action<ServerEventPrxHelper> act)
+        private void ClientEventHandler(Func<ServerEventPrxHelper, Task> act)
         {
+            var removeList = new List<ServerEventPrxHelper>();
             foreach (var client in clients)
             {
+                // logger.LogInformation($"{client.ice_getConnectionId()}");
                 try
                 {
                     act(client);
@@ -82,21 +84,22 @@ namespace Server.lib.IceBridge
                 catch (System.Exception ex)
                 {
                     logger.LogError(ex.Message);
-                    clients.Remove(client);
+                    removeList.Add(client);
                 }
             }
+            removeList.ForEach(c => clients.Remove(c));
         }
         private void TreeListUpdateHandler()
         {
-            ClientEventHandler(c => c.TreeListUpdate());
+            ClientEventHandler(async c => await c.TreeListUpdateAsync());
         }
         private void TreeUpdateHandler(string uuid)
         {
-            ClientEventHandler(c => c.TreeUpdate(uuid));
+            ClientEventHandler(async c => await c.TreeUpdateAsync(uuid));
         }
         private void NodeUpdateHandler(string uuid, string data)
         {
-            ClientEventHandler(c => c.NodeUpdate(uuid, data));
+            ClientEventHandler(async c => await c.NodeUpdateAsync(uuid, data));
         }
         public override void initEvent(ServerEventPrx serverEvent, Current current)
         {
