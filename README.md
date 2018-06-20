@@ -51,6 +51,7 @@ sudo apt-get install zeroc-ice-compilers
 
 ### Server分層架構
 
+- `lib/Config`： 設定參數
 - `lib/Repository`： 提供資料庫存取
 - `lib/Repository/Domain`：**Repository**產生的資料或呼叫的變數型態
 - `lib/Service`： 提供邏輯判斷程序
