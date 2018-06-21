@@ -1,8 +1,21 @@
 import { EventEmitter } from "events";
 
 import { Ice, Glacier2 } from "ice";
+import { v4 as uuidv4 } from "uuid";
 
 import { TreeDiagram } from "../Ice/Server";
+
+import { TreeDiagram as TreeDiagram_Tree } from "../Ice/Tree";
+
+export type TreeType = TreeDiagram_Tree.TreeType;
+
+export class Tree extends TreeDiagram_Tree.Tree {
+    public constructor(type: TreeType) {
+        super();
+        this.uuid = uuidv4();
+        this.type = type
+    }
+}
 
 export class ClientEvent extends TreeDiagram.ServerEvent {
     public event: EventEmitter = new EventEmitter();
@@ -46,8 +59,14 @@ export class Proxy {
         await this.getServer();
     }
 
-    public async listAllTrees() {
+    public async server_listAllTrees() {
         return (await this.getServer()).listAllTrees();
+    }
+    public async server_createTree(type: TreeType) {
+        return (await this.getServer()).createTree(new Tree(type));
+    }
+    public async server_deleteTree(uuid: string) {
+        return (await this.getServer()).deleteTree(uuid);
     }
 
     private GetIceCommunicator() {
@@ -129,10 +148,16 @@ if (require.main === module) {
         });
         await proxy.init();
         while (true) {
-            await setTimeoutAsync(100);
+            await setTimeoutAsync(10000);
             try {
-                const trees = await proxy.listAllTrees();
+                for (let i = 0; i < 10; i++) {
+                    await proxy.server_createTree(TreeDiagram_Tree.TreeType.Binary);
+                }
+                const trees = await proxy.server_listAllTrees();
                 console.dir(trees);
+                for(const tree of trees) {
+                    await proxy.server_deleteTree(tree.uuid);
+                }
             } catch (error) {
                 console.error(error);
             }
