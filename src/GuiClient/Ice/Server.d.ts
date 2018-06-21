@@ -5,7 +5,11 @@ import { TreeDiagram as TreeDiagram_Tree } from "./Tree";
 import { TreeDiagram as TreeDiagram_TreeView } from "./TreeView";
 
 export namespace TreeDiagram {
-    export class ServerEvent extends Ice.Object { }
+    export abstract class ServerEvent extends Ice.Object {
+        abstract TreeListUpdate(): void;
+        abstract TreeUpdate(uuid: string): void;
+        abstract NodeUpdate(uuid: string, data: string): void;
+    }
     export class ServerEventPrx extends Ice.ObjectPrx { }
     export class ServerPrx extends Ice.ObjectPrx {
         createTree(tree: TreeDiagram_Tree.Tree): void;

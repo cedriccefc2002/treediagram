@@ -25,7 +25,13 @@ let communicator: Ice.Communicator;
 
 class ServerEventI extends TreeDiagram.ServerEvent {
     public TreeListUpdate() {
-        console.log("TreeListUpdate")
+        console.log("TreeListUpdate");
+    }
+    public TreeUpdate(uuid: string) {
+        console.log("TreeUpdate");
+    }
+    public NodeUpdate(uuid: string, data: string) {
+        console.log("NodeUpdate");
     }
 }
 
@@ -134,4 +140,3 @@ async function create() {
 //         // }
 //     }
 // };
-create();

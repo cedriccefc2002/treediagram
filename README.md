@@ -235,7 +235,10 @@ slice2js -I./src/Slice/ --output-dir ./src/GuiClient/Ice ./src/Slice/*.ice
     const path = require("path");
     require('module').globalPaths.push(path.join(process.cwd(), "Ice"));
     ```
-- 方法二 適用於 `nodejs` 與 `electron renderer process` 環境下
+- 方法二 適用於 `nodejs` 與 `electron renderer process` 環境下 在每一個檔案前加入
+    ```js
+    module.paths.push(__dirname);
+    ```
 
 ### GuiClient 專案編譯
 
