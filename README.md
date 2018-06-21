@@ -221,10 +221,13 @@ slice2js -I./src/Slice/ --output-dir ./src/GuiClient/Ice ./src/Slice/*.ice
 
 當有使用 `#include` 指令時需要增加匯入路徑
 
-```js
-const path = require("path");
-require('module').globalPaths.push(path.join(process.cwd(), "Ice"));
-```
+- 方法一 適用於 `electron renderer process` 環境下
+
+    ```js
+    const path = require("path");
+    require('module').globalPaths.push(path.join(process.cwd(), "Ice"));
+    ```
+- 方法二 適用於 `nodejs` 與 `electron renderer process` 環境下
 
 ### GuiClient 專案編譯
 
@@ -242,14 +245,15 @@ npm run gui
 
 ### ice 模組在 `electron renderer process` 執行時發生的問題
 
-由於 `./node_modules/ice/src/Ice/Timer.js` 有[非法調用](https://stackoverflow.com/questions/9677985/uncaught-typeerror-illegal-invocation-in-chrome)的問題
-所以必須修改所有bind的原生函數進行修改
+由於 `./src/GuiClient/node_modules/ice/src/Ice/Timer.js` 有[非法調用](https://stackoverflow.com/questions/9677985/uncaught-typeerror-illegal-invocation-in-chrome)的問題
+所以必須修改所有bind的原生函數進行修改以相容
 
 ```js
+//schedule(callback, delay) { ...
 const id = Timer.setTimeout(() => this.handleTimeout(token), delay);
-
+// scheduleRepeated(callback, period) { ...
 const id = Timer.setInterval(() => this.handleInterval(token), period);
-
+//  cancel(id) { ...
 if(token.isInterval)
 {
     Timer.clearInterval(token.id);
@@ -263,17 +267,35 @@ else
 變成
 
 ```js
-const id = Timer.setTimeout.call(window,() => this.handleTimeout(token), delay);
-
-const id = Timer.setInterval.call(window,() => this.handleInterval(token), period);
-
-if(token.isInterval)
-{
-    Timer.clearInterval.call(window, token.id);
+// schedule(callback, delay) {
+let id
+if (typeof window === "undefined") {
+    id = Timer.setTimeout(() => this.handleTimeout(token), delay);
+} else {
+    id = Timer.setTimeout.call(window, () => this.handleTimeout(token), delay);
 }
-else
-{
-    Timer.clearTimeout.call(window, token.id);
+// scheduleRepeated(callback, period) {
+let id
+if (typeof window === "undefined") {
+    id = Timer.setInterval(() => this.handleInterval(token), period);
+} else {
+    id = Timer.setInterval.call(window, () => this.handleInterval(token), period);
+}
+//  cancel(id) { ...
+if (typeof window === "undefined") {
+    if (token.isInterval) {
+        Timer.clearInterval(token.id);
+    }
+    else {
+        Timer.clearTimeout(token.id);
+    }
+} else {
+    if (token.isInterval) {
+        Timer.clearInterval.call(window, token.id);
+    }
+    else {
+        Timer.clearTimeout.call(window, token.id);
+    }
 }
 ```
 
