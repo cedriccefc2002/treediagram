@@ -303,6 +303,12 @@ if (typeof window === "undefined") {
 
 ## 已知問題：
 
+1. `nodejs` 的 **Ice** 套件無法相容webpack
+
+    ```sh
+    Critical dependency: require function is used in a way in which dependencies cannot be statically extracted
+    ```
+
 1. **Ice**框架讓Server主動推播資料到Client?
 
     使用 `Glacier2`
