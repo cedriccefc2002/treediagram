@@ -95,7 +95,7 @@
 
 「`treediagram系統`」的系統架構如圖
 
-![「treediagram系統」的系統架構]()
+![「treediagram系統」的系統架構](./img/system_structure.png)
 
 ## 初步設計
 
