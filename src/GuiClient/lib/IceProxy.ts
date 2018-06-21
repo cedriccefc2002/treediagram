@@ -41,6 +41,15 @@ export class Proxy {
     private communicator: Ice.Communicator | null = null;
     private router: Glacier2.RouterPrx | null = null;
     private constructor() { }
+
+    public async init() {
+        await this.getServer();
+    }
+
+    public async listAllTrees() {
+        return (await this.getServer()).listAllTrees();
+    }
+
     private GetIceCommunicator() {
         if (this.communicator === null) {
             this.communicator = Ice.initialize([
@@ -73,7 +82,8 @@ export class Proxy {
         }
         return this.router;
     }
-    public async getServer() {
+
+    private async getServer() {
         if (this.server === null) {
             console.log("Create IceServer");
             const communicator = this.GetIceCommunicator();
@@ -117,12 +127,11 @@ if (require.main === module) {
         proxy.event.event.on(ClientEvent.eventTreeListUpdate, async () => {
             console.log("eventTreeListUpdate");
         });
-        await proxy.getServer();
+        await proxy.init();
         while (true) {
             await setTimeoutAsync(100);
             try {
-                const server = await proxy.getServer();
-                const trees = await server.listAllTrees();
+                const trees = await proxy.listAllTrees();
                 console.dir(trees);
             } catch (error) {
                 console.error(error);
