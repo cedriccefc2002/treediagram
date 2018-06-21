@@ -4,6 +4,14 @@
 
 ![連線測試](doc/img/run.png)
 
+## [軟體設計文件](./doc/SDD.md)
+
+參考範例：
+
+- [朝陽科技大學資訊管理系-文件範例](http://www.im.cyut.edu.tw/html/project/download.htm)：[SDD](http://www.im.cyut.edu.tw/html/project/sdd.pdf)文件
+
+- [IEEE Std 1016-1998《软件设计描述IEEE推荐实践》阅读摘要](https://blog.csdn.net/skydreamer01/article/details/2943333)
+
 ## Glacier2 執行
 
 ```sh
