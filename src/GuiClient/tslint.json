@@ -5,7 +5,15 @@
     ],
     "jsRules": {},
     "rules": {
-        "max-line-length": false,
+        "max-line-length": [
+            false,
+            120
+        ],
+        "object-literal-sort-keys": [
+            true,
+            "ignore-case",
+            "match-declaration-order"
+        ]
     },
     "rulesDirectory": []
 }

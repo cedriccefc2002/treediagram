@@ -1,40 +1,17 @@
-import { EventEmitter } from "events";
+import * as util from "util";
 
-import { Ice, Glacier2 } from "ice";
-import { v4 as uuidv4 } from "uuid";
+import { Glacier2, Ice } from "ice";
+import { configure, getLogger } from "log4js";
 
 import { TreeDiagram } from "../Ice/Server";
-
 import { TreeDiagram as TreeDiagram_Tree } from "../Ice/Tree";
 
-export type TreeType = TreeDiagram_Tree.TreeType;
+import { ClientEvent } from "./ClientEvent";
+import { Tree } from "./Tree";
 
-export class Tree extends TreeDiagram_Tree.Tree {
-    public constructor(type: TreeType) {
-        super();
-        this.uuid = uuidv4();
-        this.type = type
-    }
-}
+const logger = getLogger();
 
-export class ClientEvent extends TreeDiagram.ServerEvent {
-    public event: EventEmitter = new EventEmitter();
-    public static eventTreeListUpdate = Symbol();
-    public static eventTreeUpdate = Symbol();
-    public static eventNodeUpdate = Symbol();
-
-    public TreeListUpdate() {
-        this.event.emit(ClientEvent.eventTreeListUpdate);
-    }
-
-    public TreeUpdate(uuid: string) {
-        this.event.emit(ClientEvent.eventTreeUpdate, uuid);
-    }
-
-    public NodeUpdate(uuid: string, data: string) {
-        this.event.emit(ClientEvent.eventNodeUpdate, uuid, data);
-    }
-}
+type TreeType = TreeDiagram_Tree.TreeType;
 
 async function setImmediateAsync() {
     return new Promise((resulve, reject) => {
@@ -48,6 +25,12 @@ async function setTimeoutAsync(timeout: number) {
 }
 
 export class Proxy {
+    public static async GetProxy() {
+        if (Proxy.singleProxy === null) {
+            Proxy.singleProxy = new Proxy();
+        }
+        return Proxy.singleProxy;
+    }
     private static singleProxy: Proxy | null = null;
     public event: ClientEvent = new ClientEvent();
     private server: TreeDiagram.ServerPrx | null = null;
@@ -80,20 +63,20 @@ export class Proxy {
     }
     private async GetIceRouter() {
         if (this.router === null) {
-            console.log("Create IceRouter");
+            logger.info("Create IceRouter");
             const communicator = this.GetIceCommunicator();
             this.router = await Glacier2.RouterPrx.checkedCast(communicator.getDefaultRouter());
             if (this.router === null) {
                 await this.disconnect();
-                throw new Error("Router Is null")
+                throw new Error("Router Is null");
             } else {
                 const connection = this.router.ice_getCachedConnection();
                 if (connection === null) {
                     await this.disconnect();
-                    throw new Error("connection Is null")
+                    throw new Error("connection Is null");
                 } else {
                     connection.setCloseCallback(async () => {
-                        console.log("Connection close");
+                        logger.info("Connection close");
                         await this.disconnect();
                     });
                 }
@@ -104,7 +87,7 @@ export class Proxy {
 
     private async getServer() {
         if (this.server === null) {
-            console.log("Create IceServer");
+            logger.info("Create IceServer");
             const communicator = this.GetIceCommunicator();
             const router = await this.GetIceRouter();
             const session = await router.createSession("username", "password");
@@ -116,10 +99,9 @@ export class Proxy {
             this.server = await TreeDiagram.ServerPrx.checkedCast(proxy);
             if (this.server !== null && serverEvent !== null) {
                 await this.server.initEvent(serverEvent);
-            }
-            else {
+            } else {
                 await this.disconnect();
-                throw new Error("Invalid server")
+                throw new Error("Invalid server");
             }
         }
         return this.server;
@@ -132,19 +114,18 @@ export class Proxy {
             this.communicator = null;
         }
     }
-    public static async GetProxy() {
-        if (Proxy.singleProxy === null) {
-            Proxy.singleProxy = new Proxy();
-        }
-        return Proxy.singleProxy;
-    }
+
 }
 
 if (require.main === module) {
-    (async function () {
+    (async () => {
+        configure({
+            appenders: { console: { type: "console" } },
+            categories: { default: { appenders: ["console"], level: "all" } },
+        });
         const proxy = await Proxy.GetProxy();
         proxy.event.event.on(ClientEvent.eventTreeListUpdate, async () => {
-            console.log("eventTreeListUpdate");
+            logger.info("eventTreeListUpdate");
         });
         await proxy.init();
         while (true) {
@@ -154,12 +135,12 @@ if (require.main === module) {
                     await proxy.server_createTree(TreeDiagram_Tree.TreeType.Binary);
                 }
                 const trees = await proxy.server_listAllTrees();
-                console.dir(trees);
-                for(const tree of trees) {
+                logger.info(util.inspect(trees));
+                for (const tree of trees) {
                     await proxy.server_deleteTree(tree.uuid);
                 }
             } catch (error) {
-                console.error(error);
+                logger.error(error);
             }
         }
     })();
