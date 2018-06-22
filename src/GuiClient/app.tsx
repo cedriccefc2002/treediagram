@@ -15,7 +15,7 @@ if (require.main === module) {
                 categories: { default: { appenders: ["console"], level: "all" } },
             });
             await Proxy.GetProxy();
-            ReactDOM.render(<Render compiler="TypeScript" framework="React" />, document.getElementById("content"));
+            ReactDOM.render(<Render />, document.getElementById("content"));
             await import("jquery");
             await import("bootstrap");
         } catch (error) {
