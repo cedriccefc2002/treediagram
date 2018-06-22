@@ -9,6 +9,8 @@ import { ClientEvent } from "../IceProxy/ClientEvent";
 import { Proxy } from "../IceProxy/IceProxy";
 import { Tree } from "../IceProxy/Tree";
 
+import { Node as R_Node } from "./Node";
+
 import { getLogger } from "log4js";
 
 const logger = getLogger();
@@ -39,6 +41,9 @@ export class TreeEdit extends React.Component<ITreeEditProps, ITreeListState> {
         return <>
             <h1 >UUID = {this.props.uuid} {this.props.type.toString()}</h1>
             <h1 >type = {this.props.type.toString()}</h1>
+            <button type="button" className="btn btn-success" onClick={this.props.CallBackHandler} >回圖清單</button>
+            <hr />
+            <R_Node count={5} />
             <hr />
             <button type="button" className="btn btn-success" onClick={this.props.CallBackHandler} >回圖清單</button>
         </>;
