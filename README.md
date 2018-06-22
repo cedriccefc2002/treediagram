@@ -71,6 +71,13 @@ sudo apt-get install zeroc-ice-all-runtime
 
 ### Server 專案建置
 
+- 使用 dotnet 還原 
+
+```sh
+dotnet restore
+```
+
+- 手動新增
 ```sh
 dotnet new console -o src/Server
 dotnet add src/Server package zeroc.icebuilder.msbuild
@@ -207,6 +214,15 @@ dotnet build src/ConsoleClient
 
 ### GuiClient 專案建置
 
+- 使用 dotnet 還原 
+
+```sh
+npm install
+```
+
+- 手動新增
+
+
 ```sh
 cd ./src/GuiClient
 npm init
@@ -237,7 +253,7 @@ slice2js -I./src/Slice/ --output-dir ./src/GuiClient/Ice ./src/Slice/*.ice
     const path = require("path");
     require('module').globalPaths.push(path.join(process.cwd(), "Ice"));
     ```
-- 方法二 適用於 `nodejs` 與 `electron renderer process` 環境下 在每一個檔案前加入
+- 方法二 適用於 `nodejs` 與 `electron renderer process` 環境下 在每一個**Ice**產生的檔案開頭加入
     ```js
     module.paths.push(__dirname);
     ```
