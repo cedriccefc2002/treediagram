@@ -28,6 +28,7 @@ export class Proxy {
     public static async GetProxy() {
         if (Proxy.singleProxy === null) {
             Proxy.singleProxy = new Proxy();
+            await Proxy.singleProxy.getServer();
         }
         return Proxy.singleProxy;
     }
@@ -37,10 +38,6 @@ export class Proxy {
     private communicator: Ice.Communicator | null = null;
     private router: Glacier2.RouterPrx | null = null;
     private constructor() { }
-
-    public async init() {
-        await this.getServer();
-    }
 
     public async server_listAllTrees() {
         return (await this.getServer()).listAllTrees();
@@ -127,7 +124,6 @@ if (require.main === module) {
         proxy.event.event.on(ClientEvent.eventTreeListUpdate, async () => {
             logger.info("eventTreeListUpdate");
         });
-        await proxy.init();
         while (true) {
             await setTimeoutAsync(10000);
             try {

@@ -14,11 +14,10 @@ if (require.main === module) {
                 appenders: { console: { type: "console" } },
                 categories: { default: { appenders: ["console"], level: "all" } },
             });
+            await Proxy.GetProxy();
             ReactDOM.render(<Render compiler="TypeScript" framework="React" />, document.getElementById("content"));
             await import("jquery");
             await import("bootstrap");
-            const proxy = await Proxy.GetProxy();
-            await proxy.init();
         } catch (error) {
             alert(error);
             window.close();
