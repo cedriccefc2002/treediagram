@@ -242,12 +242,17 @@ slice2js -I./src/Slice/ --output-dir ./src/GuiClient/Ice ./src/Slice/*.ice
 
 ### GuiClient 專案編譯
 
+使用 electron-builder
+
 ```sh
 cd ./src/GuiClient
 npm run build
 ```
 
-### GuiClient 專案執行：
+- windows 安裝檔產出於 /src/GuiClient/dist/treediagram-client 1.0.0.exe
+- linux 壓縮產出於 /src/GuiClient/dist/treediagram-client-1.0.0.7z
+
+### GuiClient 專案執行與測試：
 
 ```sh
 cd ./src/GuiClient
