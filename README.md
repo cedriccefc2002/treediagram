@@ -2,7 +2,8 @@
 
 一個可讓客端透過API編輯樹狀圖(tree diagram)的網路服務
 
-![連線測試](doc/img/run.png)
+[![GUI功能測試 2018-6-22](https://img.youtube.com/vi/wURySqRf4Hw/0.jpg)
+](https://youtu.be/wURySqRf4Hw)
 
 ## [軟體設計文件](./doc/SDD.md)
 
