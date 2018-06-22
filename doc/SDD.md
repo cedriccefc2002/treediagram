@@ -107,9 +107,7 @@
 
 本系統的功能架構為一主從式架構服務型態(Client/Server)
 
-![treediagram系統架構圖]()
-
-![treediagram系統架構圖]()
+![Server端系統方塊圖](./img/systemblockdiagram_server.png)
 
 ### 軟體組件設計說明
 
