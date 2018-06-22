@@ -47,13 +47,14 @@ let proxy = ic.stringToProxy("Server:tcp -h 127.0.0.1 -p 10000");
 1. 使用瀏覽器登入 http://localhost:7474
 1. 預設帳密 **neo4j**/**neo4j**，變更密碼為：**12369874**
 
-## 安裝 [Slice Compiler](https://zeroc.com/downloads/ice#dotnet-core)
+## 安裝 [Slice Compiler](https://zeroc.com/downloads/ice#dotnet-core) 與 runtime 程式
 
 ```sh
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv B6391CB2CFBA643D
 sudo apt-add-repository "deb http://zeroc.com/download/Ice/3.7/ubuntu18.04 stable main"
 sudo apt-get update
 sudo apt-get install zeroc-ice-compilers
+sudo apt-get install zeroc-ice-all-runtime
 ```
 
 ## Server 專案
