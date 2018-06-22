@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc && electron-builder build --win && tsc && electron-builder build --linux",
+    "build": "tsc",
+    "publish": "electron-builder build -w -l --publish always",
     "gui": "electron ."
   },
   "repository": {
@@ -43,12 +44,18 @@
       "target": "portable",
       "signAndEditExecutable": false,
       "asar": true,
-      "asarUnpack": false
+      "asarUnpack": false,
+      "publish": [
+        "github"
+      ]
     },
     "linux": {
       "target": "7z",
       "asar": true,
-      "asarUnpack": false
+      "asarUnpack": false,
+      "publish": [
+        "github"
+      ]
     }
   }
 }

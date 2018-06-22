@@ -249,8 +249,20 @@ cd ./src/GuiClient
 npm run build
 ```
 
-- windows 安裝檔產出於 /src/GuiClient/dist/treediagram-client 1.0.0.exe
-- linux 壓縮產出於 /src/GuiClient/dist/treediagram-client-1.0.0.7z
+### GuiClient 建置與發布到github
+
+- 設定[personal-access-token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)後執行
+
+```sh
+#產生的token
+export GH_TOKEN=""
+cd ./src/GuiClient
+npm run publish
+```
+
+- 產出位置
+  - windows 安裝檔於 /src/GuiClient/dist/treediagram-client 1.0.0.exe
+  - linux 壓縮產出於 /src/GuiClient/dist/treediagram-client-1.0.0.7z
 
 ### GuiClient 專案執行與測試：
 
