@@ -3,8 +3,8 @@ import * as util from "util";
 import { Glacier2, Ice } from "ice";
 import { configure, getLogger } from "log4js";
 
-import { TreeDiagram } from "../Ice/Server";
-import { TreeDiagram as TreeDiagram_Tree } from "../Ice/Tree";
+import { TreeDiagram } from "../../Ice/Server";
+import { TreeDiagram as TreeDiagram_Tree } from "../../Ice/Tree";
 
 import { ClientEvent } from "./ClientEvent";
 import { Tree } from "./Tree";

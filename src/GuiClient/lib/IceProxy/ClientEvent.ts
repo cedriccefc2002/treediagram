@@ -1,6 +1,5 @@
 import { EventEmitter } from "events";
-import { TreeDiagram } from "../Ice/Server";
-
+import { TreeDiagram } from "../../Ice/Server";
 
 export class ClientEvent extends TreeDiagram.ServerEvent {
     public static eventTreeListUpdate = Symbol();

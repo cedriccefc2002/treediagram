@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { TreeDiagram as TreeDiagram_Tree } from "../Ice/Tree";
+import { TreeDiagram as TreeDiagram_Tree } from "../../Ice/Tree";
 type TreeType = TreeDiagram_Tree.TreeType;
 export class Tree extends TreeDiagram_Tree.Tree {
     public constructor(type: TreeType) {
