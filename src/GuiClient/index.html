@@ -3,123 +3,12 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Ice Test</title>
+    <title>treediagram-client</title>
 </head>
-
-<body onload="status()">
-    <h1>Ice Test</h1>
-    <input type="text" id="data" value="Hello" />
-    <button onclick="create()">送出</button>
-    <!-- <input type="text" id="resut" value="" /> -->
-    <script>
-        const uuidv1 = require('uuid/v1');
-        const path = require("path");
-        require('module').globalPaths.push(path.join(process.cwd(), "Ice"));
-        const Ice = require("ice").Ice;
-        const Glacier2 = require("ice").Glacier2;
-        const TreeDiagram = require("./Ice/Server").TreeDiagram;
-        async function setImmediateAsync() {
-            return new Promise((resulve, reject) => {
-                setImmediate(resulve);
-            })
-        } async function setTimeoutAsync(timeout) {
-            return new Promise((resulve, reject) => {
-                setTimeout(resulve, timeout);
-            })
-        }
-        let communicator;
-        class ServerEventI extends TreeDiagram.ServerEvent {
-            TreeListUpdate(current) {
-                console.log("TreeListUpdate")
-                console.dir(current)
-            }
-        }
-
-        async function create() {
-            try {
-                communicator = Ice.initialize([
-                    "--Ice.Default.Router=PublicRouter/router:tcp -h 127.0.0.1 -p 10001",
-                    "--Ice.ACM.Client.Heartbeat=3"
-                    // "--Ice.RetryIntervals=-1",
-                    // "--Ice.ACM.Client=0"
-                ]);
-                // const base = ic.stringToProxy("Server:default -h localhost -p 10000");
-                let router = await Glacier2.RouterPrx.checkedCast(communicator.getDefaultRouter());
-                let session = await router.createSession("username", "password");
-                const [timeout, category, adapter] = await Promise.all([
-                    router.getSessionTimeout(),
-                    router.getCategoryForClient(),
-                    communicator.createObjectAdapterWithRouter("", router)]
-                )
-                console.log(timeout);
-                console.log(category);
-                console.dir(adapter);
-                const connection = router.ice_getCachedConnection();
-                // 心跳
-                // connection.setACM(undefined, undefined, Ice.ACMHeartbeat.HeartbeatAlways);
-                connection.setCloseCallback(() => {
-                    //當與Glacier2連線中斷時觸發
-                    console.log("Connection lost");
-                });
-
-                let proxy = communicator.stringToProxy("Server:tcp -h 127.0.0.1 -p 10000");
-                const serverEvent = TreeDiagram.ServerEventPrx.uncheckedCast(adapter.add(new ServerEventI(), new Ice.Identity("serverEvent", category)));
-                const server = await TreeDiagram.ServerPrx.checkedCast(proxy);
-                if (server) {
-                    await server.initEvent(serverEvent);
-                    // let type = document.getElementById("data").value
-                    // await server.initEvent(new TreeDiagram.ServerEventPrx);
-                    // await server.createTree(new TreeDiagram.Tree(uuidv1(), ""));
-                    // let readTree = await server.readTree();
-                    // console.dir(readTree);
-                    // await server.deleteTree(readTree[0].uuid);
-                }
-                else {
-                    console.log("Invalid proxy");
-                }
-            }
-            catch (ex) {
-                console.error(ex);
-                //     process.exitCode = 1;
-            }
-            finally {
-                // if (communicator) {
-                //     await communicator.destroy();
-                // }
-            }
-        };
-        async function status() {
-            return;
-            let ic;
-            try {
-                ic = Ice.initialize();
-                const base = ic.stringToProxy("Server:default -h localhost -p 10000");
-                const server = await TreeDiagram.ServerPrx.checkedCast(base);
-                if (server) {
-                    // document.getElementById("data").value
-                    // document.getElementById("resut").value = await server.status();
-                    while (true) {
-                        let status = await server.status();
-                        let readTree = await server.readTree();
-                        console.dir(readTree);
-                        await setTimeoutAsync(5000);
-                    }
-                }
-                else {
-                    console.log("Invalid proxy");
-                }
-            }
-            catch (ex) {
-                console.error(ex);
-                //     process.exitCode = 1;
-            }
-            finally {
-                if (ic) {
-                    await ic.destroy();
-                }
-            }
-        };
-    </script>
+<body>
+    <div id="content"></div>
+    <script>var exports = {};</script>
+    <script src="./app.js"></script>
 </body>
 
 </html>

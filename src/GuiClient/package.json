@@ -21,11 +21,15 @@
   "dependencies": {
     "ice": "^3.7.1",
     "log4js": "^2.9.0",
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1",
     "uuid": "^3.2.1"
   },
   "devDependencies": {
     "@types/electron": "^1.6.10",
     "@types/log4js": "^2.3.5",
+    "@types/react": "^16.4.1",
+    "@types/react-dom": "^16.0.6",
     "@types/uuid": "^3.4.3",
     "electron": "2.0.2",
     "tslint": "^5.10.0",
