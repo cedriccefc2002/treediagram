@@ -20,6 +20,7 @@ export interface ITreeEditPropsConfig {
     uuid: string;
     data: string;
     view: TreeDiagram_TreeView.TreeView | null;
+    isBinaryleft: boolean;
 }
 
 export interface ITreeEditProps {
@@ -57,6 +58,7 @@ export class Node extends React.Component<ITreeEditProps, ITreeListState> {
                 isbinaryTree: config.isbinaryTree,
                 data: node.data,
                 view: config.view,
+                isBinaryleft: node.isBinaryleft,
             };
             rows.push(<li key={i++} className="list-group-item">
                 <Node config={childConfig} />
@@ -68,6 +70,12 @@ export class Node extends React.Component<ITreeEditProps, ITreeListState> {
         const nodes = this.findChildren();
         const config = this.props.config;
         return <>
+            {
+                !config.isRoot && config.isbinaryTree ? (
+                    config.isBinaryleft ?
+                        "左子樹" : "右子樹"
+                ) : < ></>
+            }
             {
                 config.isRoot ? <></> :
                     <div>

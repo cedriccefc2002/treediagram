@@ -61,14 +61,15 @@ namespace Server.lib.Service
             var root = await GetTreeByUUID(rootUUID);
             if (root.type == TreeType.Binary)
             {
-                var count = await GetChildrenCount(parentUUID);
-                if (count >= 2)
+                var childern = await repository.GetChildrenNode(parentUUID);
+                if (childern.Count >= 2)
                 {
                     result = false;
                 }
-                else if (count == 1)
+                else if (childern.Count == 1)
                 {
-                    await repository.CreateNode(rootUUID, parentUUID, data, NodeModel.IsBinaryleft(false));
+                    var IsBinaryleft = NodeModel.IsBinaryleft(childern.First().isBinaryleft);
+                    await repository.CreateNode(rootUUID, parentUUID, data, NodeModel.IsBinaryleft(!IsBinaryleft));
                     result = true;
                 }
                 else
@@ -163,7 +164,7 @@ namespace Server.lib.Service
                     {
                         await repository.MoveNode(uuid, node.parent, NodeModel.IsBinaryleft(node.isBinaryleft));
                     }
-                    await repository.DeleteNodeTree(uuid);
+                    await repository.DeleteNode(uuid);
                     result = true;
                 }
             }

@@ -47,6 +47,7 @@ export class TreeEdit extends React.Component<ITreeEditProps, ITreeListState> {
             view,
             isRoot: true,
             isbinaryTree: this.props.type === TreeDiagram_Tree.TreeType.Binary,
+            isBinaryleft: false,
         };
         return <>
             <h1 >UUID = {this.props.uuid} {this.props.type.toString()}</h1>
@@ -65,8 +66,12 @@ export class TreeEdit extends React.Component<ITreeEditProps, ITreeListState> {
         }
     }
 
-    private eventTreeUpdateListener = async () => {
-        return this.treeViewUpdate();
+    private eventTreeUpdateListener = async (uuid: string) => {
+        if (this.props.uuid === uuid) {
+            await this.treeViewUpdate();
+        } else {
+            logger.info(`${this.props.uuid} === ${uuid}`);
+        }
     }
 
     private eventTreeListUpdateListener = async () => {

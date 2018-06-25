@@ -391,7 +391,7 @@ namespace Server.lib.Repository
                 throw ex;
             }
         }
-        public async Task<IList<NodeDomain>> GetChildrenNode(string parent)
+        public async Task<List<NodeDomain>> GetChildrenNode(string parent)
         {
             await Task.Delay(0);
             var result = new List<NodeDomain>();
@@ -407,7 +407,8 @@ namespace Server.lib.Repository
                             RETURN 
                                 node.uuid AS uuid,
                                 node.data AS data,
-                                node.root AS root
+                                node.root AS root,
+                                node.isBinaryleft AS isBinaryleft
                         ", new { parent });
                     });
                     foreach (var record in cursor)
