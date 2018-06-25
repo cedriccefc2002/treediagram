@@ -169,7 +169,7 @@ namespace Server.lib.IceBridge
         {
             clients.Add(((ServerEventPrxHelper)serverEvent));
             var service = lib.Provider.serviceProvider.GetRequiredService<Service.EventService>();
-            var task = service.DoTreeListUpdate();
+            // var task = service.DoTreeListUpdate();
             // Task.Run(async () =>
             // {
             //     while (true)
