@@ -13,7 +13,7 @@ import { Node as R_Node } from "./Node";
 
 import { getLogger } from "log4js";
 
-const logger = getLogger();
+const logger = getLogger("TreeEdit");
 
 export interface ITreeEditProps {
     uuid: string;
@@ -30,20 +30,21 @@ export class TreeEdit extends React.Component<ITreeEditProps, ITreeListState> {
 
     public constructor(props: ITreeEditProps) {
         super(props);
-        this.init();
         this.state = {
             view: null,
         };
+        this.init();
     }
 
     public render() {
         const view = this.state.view;
+        logger.info(until.inspect(view));
         return <>
             <h1 >UUID = {this.props.uuid} {this.props.type.toString()}</h1>
             <h1 >type = {this.props.type.toString()}</h1>
             <button type="button" className="btn btn-success" onClick={this.props.CallBackHandler} >回圖清單</button>
             <hr />
-            <R_Node count={5} />
+            <R_Node rootUUID={this.props.uuid} parentUUID={this.props.uuid} uuid={this.props.uuid} data="" view={view} isRoot={true} />
             <hr />
             <button type="button" className="btn btn-success" onClick={this.props.CallBackHandler} >回圖清單</button>
         </>;
@@ -51,26 +52,35 @@ export class TreeEdit extends React.Component<ITreeEditProps, ITreeListState> {
     public componentWillUnmount() {
         if (this.proxy !== null) {
             this.proxy.event.event.removeListener(ClientEvent.eventTreeUpdate, this.eventTreeUpdateListener);
-            this.proxy.event.event.removeListener(ClientEvent.eventNodeUpdate, this.eventNodeUpdateListener);
-        }
-    }
-    private async deleteTree(uuid: string) {
-        if (this.proxy !== null) {
-            await this.proxy.server_deleteTree(uuid);
-            alert("刪除完成");
+            this.proxy.event.event.removeListener(ClientEvent.eventTreeListUpdate, this.eventTreeListUpdateListener);
         }
     }
 
-    private eventTreeUpdateListener = () => {
-        return;
+    private eventTreeUpdateListener = async () => {
+        return this.treeViewUpdate();
     }
-    private eventNodeUpdateListener = () => {
-        return;
+
+    private eventTreeListUpdateListener = async () => {
+        if (this.proxy !== null) {
+            const trees = await this.proxy.server_listAllTrees();
+            if (trees.findIndex((tree) => tree.uuid === this.props.uuid) === -1) {
+                alert("本圖已被刪除");
+                this.props.CallBackHandler();
+            }
+        }
+    }
+
+    private async treeViewUpdate() {
+        if (this.proxy !== null) {
+            const view = await this.proxy.server_getNodeView(this.props.uuid);
+            this.setState({ view });
+        }
     }
 
     private async init() {
         this.proxy = await Proxy.GetProxy();
         this.proxy.event.event.addListener(ClientEvent.eventTreeUpdate, this.eventTreeUpdateListener);
-        this.proxy.event.event.addListener(ClientEvent.eventNodeUpdate, this.eventNodeUpdateListener);
+        this.proxy.event.event.addListener(ClientEvent.eventTreeListUpdate, this.eventTreeListUpdateListener);
+        return this.treeViewUpdate();
     }
 }

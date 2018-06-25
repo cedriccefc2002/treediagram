@@ -28,13 +28,13 @@ export class TreeList extends React.Component<ITreeListProps, ITreeListState> {
 
     public constructor(props: ITreeListProps) {
         super(props);
-        this.init();
         this.state = {
             trees: [],
             createTree: {
                 type: "0",
             },
         };
+        this.init();
     }
     public renderTress() {
         const rows: JSX.Element[] = [];
