@@ -25,6 +25,8 @@ export interface ITreeEditPropsConfig {
 
 export interface ITreeEditProps {
     config: ITreeEditPropsConfig;
+    moveUUID: string;
+    setMoveUUID: (uuid: string) => void;
 }
 
 export interface ITreeListState {
@@ -61,7 +63,7 @@ export class Node extends React.Component<ITreeEditProps, ITreeListState> {
                 isBinaryleft: node.isBinaryleft,
             };
             rows.push(<li key={i++} className="list-group-item">
-                <Node config={childConfig} />
+                <Node config={childConfig} moveUUID={this.props.moveUUID} setMoveUUID={this.props.setMoveUUID} />
             </li>);
         }
         return rows;
@@ -96,6 +98,16 @@ export class Node extends React.Component<ITreeEditProps, ITreeListState> {
                         <button type="button" className="btn btn-danger" onClick={() => { this.deleteNodeTree(); }}>刪除節點與子樹</button>
                     </>
             }
+            {this.props.moveUUID === config.uuid ?
+                <button type="button" className="btn btn-info" onClick={() => { this.props.setMoveUUID(""); }}>取消移動</button>
+                : (
+                    this.props.moveUUID === "" ? (
+                        config.isRoot ? <></> :
+                            <button type="button" className="btn btn-warning" onClick={() => { this.props.setMoveUUID(config.uuid); }}>移動本節點</button>
+                    )
+                        :
+                        <button type="button" className="btn btn-warning" onClick={() => { this.moveNodeTree(); }}>移動節點到此</button>
+                )}
             {
                 nodes.length > 0 ? <>
                     <hr />
@@ -130,6 +142,16 @@ export class Node extends React.Component<ITreeEditProps, ITreeListState> {
         // logger.info(until.inspect(view));
         // logger.info(until.inspect(nodes));
         return nodes;
+    }
+
+    private async moveNodeTree() {
+        const config = this.props.config;
+        const moveUUID = this.props.moveUUID;
+        if (this.proxy !== null) {
+            logger.info(`moveNodeTree ${config.uuid}`);
+            await this.proxy.server_moveNode(moveUUID, config.uuid);
+            this.props.setMoveUUID("");
+        }
     }
 
     private async deleteNodeTree() {

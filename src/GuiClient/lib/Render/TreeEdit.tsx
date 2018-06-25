@@ -23,6 +23,7 @@ export interface ITreeEditProps {
 
 export interface ITreeListState {
     view: TreeDiagram_TreeView.TreeView | null;
+    moveUUID: string;
 }
 
 export class TreeEdit extends React.Component<ITreeEditProps, ITreeListState> {
@@ -32,6 +33,7 @@ export class TreeEdit extends React.Component<ITreeEditProps, ITreeListState> {
         super(props);
         this.state = {
             view: null,
+            moveUUID: "",
         };
         this.init();
     }
@@ -54,7 +56,7 @@ export class TreeEdit extends React.Component<ITreeEditProps, ITreeListState> {
             <h1 >type = {this.props.type.toString()}</h1>
             <button type="button" className="btn btn-success" onClick={this.props.CallBackHandler} >回圖清單</button>
             <hr />
-            <R_Node config={nodeConfig} />
+            <R_Node config={nodeConfig} moveUUID={this.state.moveUUID} setMoveUUID={(moveUUID) => { this.setState({ moveUUID }); }} />
             <hr />
             <button type="button" className="btn btn-success" onClick={this.props.CallBackHandler} >回圖清單</button>
         </>;
