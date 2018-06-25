@@ -14,7 +14,7 @@ namespace Server.lib.Service.Model
             {
                 uuid = source.uuid,
                 nodes = source.nodes.Select(a => Model.NodeModel.FromDomain(a)).ToList(),
-                rels = source.rels.Select(a => (NodeRelationshipModel)a).ToList(),
+                rels = source.rels.Select(a => Model.NodeRelationshipModel.FromDomain(a)).ToList(),
             };
         }
     }
