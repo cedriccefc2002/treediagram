@@ -39,14 +39,52 @@ export class Proxy {
     private router: Glacier2.RouterPrx | null = null;
     private constructor() { }
 
-    public async server_listAllTrees() {
-        return (await this.getServer()).listAllTrees();
-    }
     public async server_createTree(type: TreeType) {
         return (await this.getServer()).createTree(new Tree(type));
     }
+
+    public async server_listAllTrees() {
+        return (await this.getServer()).listAllTrees();
+    }
+
+    public async server_getTreeByUUID(uuid: string) {
+        return (await this.getServer()).getTreeByUUID(uuid);
+    }
+
     public async server_deleteTree(uuid: string) {
         return (await this.getServer()).deleteTree(uuid);
+    }
+
+    public async server_getChildrenCount(uuid: string) {
+        return (await this.getServer()).getChildrenCount(uuid);
+    }
+
+    public async server_createNode(rootUUID: string, parentUUID: string, data: string) {
+        return (await this.getServer()).createNode(rootUUID, parentUUID, data);
+    }
+
+    public async server_getChildrenNode(uuid: string) {
+        return (await this.getServer()).getChildrenNode(uuid);
+    }
+
+    public async server_updateNodeData(uuid: string, data: string) {
+        return (await this.getServer()).updateNodeData(uuid, data);
+    }
+
+    public async server_deleteNodeTree(uuid: string) {
+        return (await this.getServer()).deleteNodeTree(uuid);
+    }
+
+    public async server_moveNode(uuid: string, newParent: string) {
+        return (await this.getServer()).moveNode(uuid, newParent);
+    }
+
+    public async server_deleteNode(uuid: string) {
+        return (await this.getServer()).deleteNode(uuid);
+    }
+
+    public async server_getNodeView(uuid: string) {
+        return (await this.getServer()).getNodeView(uuid);
     }
 
     private GetIceCommunicator() {
