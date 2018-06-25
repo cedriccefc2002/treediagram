@@ -7,6 +7,10 @@ export class ClientEvent extends TreeDiagram.ServerEvent {
     public static eventNodeUpdate = Symbol();
 
     public event: EventEmitter = new EventEmitter();
+    public constructor() {
+        super();
+        this.event.setMaxListeners(Number.MAX_SAFE_INTEGER);
+    }
 
     public TreeListUpdate() {
         this.event.emit(ClientEvent.eventTreeListUpdate);

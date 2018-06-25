@@ -12,13 +12,18 @@ import { Proxy } from "../IceProxy/IceProxy";
 
 const logger = getLogger("Node");
 
-export interface ITreeEditProps {
+export interface ITreeEditPropsConfig {
+    isbinaryTree: boolean;
     rootUUID: string;
     parentUUID: string;
     isRoot: boolean;
     uuid: string;
     data: string;
     view: TreeDiagram_TreeView.TreeView | null;
+}
+
+export interface ITreeEditProps {
+    config: ITreeEditPropsConfig;
 }
 
 export interface ITreeListState {
@@ -31,8 +36,9 @@ export class Node extends React.Component<ITreeEditProps, ITreeListState> {
 
     public constructor(props: ITreeEditProps) {
         super(props);
+        const config = this.props.config;
         this.state = {
-            data: this.props.data,
+            data: config.data,
             childNodeData: "",
         };
         this.init();
@@ -40,34 +46,47 @@ export class Node extends React.Component<ITreeEditProps, ITreeListState> {
 
     public renderChildren(nodes: TreeDiagram_Node.Node[]) {
         const rows: JSX.Element[] = [];
+        const config = this.props.config;
         let i = 0;
         for (const node of nodes) {
+            const childConfig: ITreeEditPropsConfig = {
+                rootUUID: config.rootUUID,
+                parentUUID: config.uuid,
+                isRoot: false,
+                uuid: node.uuid,
+                isbinaryTree: config.isbinaryTree,
+                data: node.data,
+                view: config.view,
+            };
             rows.push(<li key={i++} className="list-group-item">
-                <Node rootUUID={this.props.rootUUID} parentUUID={this.props.uuid} isRoot={false} uuid={node.uuid} data={node.data} view={this.props.view} />
+                <Node config={childConfig} />
             </li>);
         }
         return rows;
     }
     public render() {
         const nodes = this.findChildren();
+        const config = this.props.config;
         return <>
             {
-                this.props.isRoot ? <></> :
+                config.isRoot ? <></> :
                     <div>
-                        節點資料： <input type="text" value={this.props.data} onChange={(e) => this.dataChange(e)} />
+                        節點資料： <input type="text" value={this.state.data} onChange={(e) => this.dataChange(e)} />
+                        <button type="button" className="btn btn-sm btn-warning" onClick={() => { this.dataUpdate(); }}>更新</button>
                     </div>
             }
-
-            <div>
-                新增子節點： <input type="text" value={this.state.childNodeData} onChange={(e) => this.childNodeDataChange(e)} />
-                <button type="button" className="btn btn-defaults" onClick={() => { this.childNodeDataCrwate(); }}>新增</button>
-            </div>
             {
-                this.props.isRoot ? <></> :
-                    <div className="btn-group btn-group-sm" role="group">
-                        <button type="button" className="btn btn-secondary">刪除節點</button>
-                        <button type="button" className="btn btn-secondary">刪除節點與子樹</button>
-                    </div>
+                (config.isbinaryTree && nodes.length >= 2) ? <></> : <div>
+                    新增子節點： <input type="text" value={this.state.childNodeData} onChange={(e) => this.childNodeDataChange(e)} />
+                    <button type="button" className="btn btn-sm btn-success" onClick={() => { this.childNodeDataCrwate(); }}>新增</button>
+                </div>
+            }
+            {
+                config.isRoot ? <></> :
+                    <>
+                        <button type="button" className="btn btn-danger" onClick={() => { this.deleteNode(); }}>刪除節點但保留子樹</button>
+                        <button type="button" className="btn btn-danger" onClick={() => { this.deleteNodeTree(); }}>刪除節點與子樹</button>
+                    </>
             }
             {
                 nodes.length > 0 ? <>
@@ -86,10 +105,11 @@ export class Node extends React.Component<ITreeEditProps, ITreeListState> {
 
     private findChildren() {
         const nodes: TreeDiagram_Node.Node[] = [];
-        const view = this.props.view;
+        const config = this.props.config;
+        const view = config.view;
         if (view !== null) {
             for (const rel of view.rels) {
-                if (rel.parentUUID === this.props.uuid) {
+                if (rel.parentUUID === config.uuid) {
                     const childIndex = view.nodes.findIndex((n) => {
                         return n.uuid === rel.childUUID;
                     });
@@ -104,11 +124,31 @@ export class Node extends React.Component<ITreeEditProps, ITreeListState> {
         return nodes;
     }
 
+    private async deleteNodeTree() {
+        const config = this.props.config;
+        if (this.proxy !== null) {
+            logger.info(`deleteNodeTree ${config.uuid}`);
+            await this.proxy.server_deleteNodeTree(config.uuid);
+        }
+    }
+
+    private async deleteNode() {
+        const config = this.props.config;
+        if (this.proxy !== null) {
+            logger.info(`deleteNode ${config.uuid}`);
+            await this.proxy.server_deleteNode(config.uuid);
+        }
+    }
+
+    private async dataUpdate() {
+        const config = this.props.config;
+        if (this.proxy !== null) {
+            await this.proxy.server_updateNodeData(config.uuid, this.state.data);
+        }
+    }
+
     private async dataChange(event: React.ChangeEvent<HTMLInputElement>) {
-        // if (this.proxy !== null) {
-        //     await this.proxy.server_updateNodeData(this.props.uuid, event.target.value);
-        // }
-        return;
+        this.setState({ data: event.target.value });
     }
 
     private async childNodeDataChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -116,14 +156,17 @@ export class Node extends React.Component<ITreeEditProps, ITreeListState> {
     }
 
     private async childNodeDataCrwate() {
+        const config = this.props.config;
         if (this.proxy !== null) {
-            logger.info(`${this.props.rootUUID} ${this.props.uuid} ${this.state.childNodeData}`);
-            await this.proxy.server_createNode(this.props.rootUUID, this.props.uuid, this.state.childNodeData);
+            logger.info(`${config.rootUUID} ${config.uuid} ${this.state.childNodeData}`);
+            await this.proxy.server_createNode(config.rootUUID, config.uuid, this.state.childNodeData);
+            this.setState({ childNodeData: "" });
         }
     }
 
     private eventNodeUpdateListener = (uuid: string, data: string) => {
-        if (uuid === this.props.uuid) {
+        const config = this.props.config;
+        if (uuid === config.uuid && this.state.data !== data) {
             this.setState({ data });
         }
     }

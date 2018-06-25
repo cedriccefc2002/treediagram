@@ -103,13 +103,13 @@ export class TreeList extends React.Component<ITreeListProps, ITreeListState> {
         const type = this.state.createTree.type;
         if (this.proxy !== null) {
             await this.proxy.server_createTree(type === "0" ? TreeDiagram_Tree.TreeType.Normal : TreeDiagram_Tree.TreeType.Binary);
-            alert("新增完成");
+            // alert("新增完成");
         }
     }
     private async deleteTree(uuid: string) {
         if (this.proxy !== null) {
             await this.proxy.server_deleteTree(uuid);
-            alert("刪除完成");
+            // alert("刪除完成");
         }
     }
 

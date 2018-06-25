@@ -9,7 +9,7 @@ import { ClientEvent } from "../IceProxy/ClientEvent";
 import { Proxy } from "../IceProxy/IceProxy";
 import { Tree } from "../IceProxy/Tree";
 
-import { Node as R_Node } from "./Node";
+import { ITreeEditPropsConfig as R_NodeConfig, Node as R_Node } from "./Node";
 
 import { getLogger } from "log4js";
 
@@ -39,12 +39,21 @@ export class TreeEdit extends React.Component<ITreeEditProps, ITreeListState> {
     public render() {
         const view = this.state.view;
         logger.info(until.inspect(view));
+        const nodeConfig: R_NodeConfig = {
+            rootUUID: this.props.uuid,
+            parentUUID: this.props.uuid,
+            uuid: this.props.uuid,
+            data: "",
+            view,
+            isRoot: true,
+            isbinaryTree: this.props.type === TreeDiagram_Tree.TreeType.Binary,
+        };
         return <>
             <h1 >UUID = {this.props.uuid} {this.props.type.toString()}</h1>
             <h1 >type = {this.props.type.toString()}</h1>
             <button type="button" className="btn btn-success" onClick={this.props.CallBackHandler} >回圖清單</button>
             <hr />
-            <R_Node rootUUID={this.props.uuid} parentUUID={this.props.uuid} uuid={this.props.uuid} data="" view={view} isRoot={true} />
+            <R_Node config={nodeConfig} />
             <hr />
             <button type="button" className="btn btn-success" onClick={this.props.CallBackHandler} >回圖清單</button>
         </>;
