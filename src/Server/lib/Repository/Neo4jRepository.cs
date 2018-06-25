@@ -292,8 +292,8 @@ namespace Server.lib.Repository
                                 [
                                     r in collect(DISTINCT last(r)) | 
                                     { 
-                                        parentUUID: startNode(r).uuid, 
-                                        childUUID:endNode(r).uuid 
+                                        parentUUID: endNode(r).uuid, 
+                                        childUUID: startNode(r).uuid 
                                     }
                                 ] as rels
                             RETURN size(nodes) AS nodesCount,size(rels) AS relsCount, nodes, rels
