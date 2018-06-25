@@ -7,6 +7,8 @@ module TreeDiagram
         string data;
         string root;
         string parent;
+        // 二元樹下是否為左子樹
+        bool isBinaryleft;
     }
 
     sequence<Node> Nodes;

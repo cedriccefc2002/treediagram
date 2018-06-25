@@ -7,6 +7,7 @@ namespace Server.lib.Service.Model
         public string root { get; set; }
         public string parent { get; set; }
         public string data { get; set; }
+        public bool isBinaryleft { get; set; }
         public Domain.NodeDomain NodeDomain()
         {
             return new Domain.NodeDomain
@@ -15,7 +16,14 @@ namespace Server.lib.Service.Model
                 root = root,
                 parent = parent,
                 data = data,
+                isBinaryleft = IsBinaryleft(isBinaryleft)
             };
+        }
+        public static string IsBinaryleft(bool source){
+            return source ? "true" : "false";
+        }
+        public static bool IsBinaryleft(string source){
+            return (source == "true");
         }
         public static NodeModel FromDomain(Domain.NodeDomain source)
         {
@@ -25,6 +33,7 @@ namespace Server.lib.Service.Model
                 root = source.root,
                 parent = source.parent,
                 data = source.data,
+                isBinaryleft = IsBinaryleft(source.isBinaryleft),
             };
         }
     }

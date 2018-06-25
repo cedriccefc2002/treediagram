@@ -86,6 +86,7 @@ namespace Server.lib.IceBridge
                 root = a.root,
                 parent = a.parent,
                 data = a.data,
+                isBinaryleft = a.isBinaryleft,
             }).ToArray();
         }
 
@@ -126,6 +127,7 @@ namespace Server.lib.IceBridge
                     root = a.root,
                     parent = a.parent,
                     data = a.data,
+                    isBinaryleft = a.isBinaryleft,
                 }).ToArray(),
                 rels = result.rels.Select(a => new NodeRelationship()
                 {

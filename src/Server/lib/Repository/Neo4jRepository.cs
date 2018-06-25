@@ -81,7 +81,7 @@ namespace Server.lib.Repository
          */
         #region Node
         // 新增節點, 節點可儲存資料 (string)
-        public async Task<bool> CreateNode(string root, string parent, string data = "")
+        public async Task<bool> CreateNode(string root, string parent, string data, string isBinaryleft)
         {
             try
             {
@@ -92,14 +92,15 @@ namespace Server.lib.Repository
                     logger.LogInformation($"{uuid}|{data}|{root}|{parent}|Start");
                     var id = session.WriteTransaction((tx) =>
                     {
-                        var parms = new { uuid, data, root, parent };
+                        var parms = new { uuid, data, root, parent, isBinaryleft };
                         var query = @"
                             CREATE (node: Node) 
                             SET 
                                 node.uuid = $uuid,
                                 node.data = $data,
                                 node.root = $root,
-                                node.parent = $parent
+                                node.parent = $parent,
+                                node.isBinaryleft = $isBinaryleft
                             RETURN id(node)
                         ";
                         var result = tx.Run(query, parms);
@@ -119,6 +120,40 @@ namespace Server.lib.Repository
             {
                 logger.LogError(ex.Message);
                 return false;
+            }
+        }
+        public async Task<NodeDomain> GetNodeByUUID(string uuid)
+        {
+            await Task.Delay(0);
+            try
+            {
+                logger.LogInformation($"{uuid}");
+                using (var session = driver.Session())
+                {
+                    var result = session.Run(@"
+                        MATCH (node: Node) 
+                        Where node.uuid = $uuid
+                        RETURN 
+                            node.uuid as uuid, 
+                            node.data as data,
+                            node.root as root,
+                            node.parent as parent,
+                            node.isBinaryleft as isBinaryleft
+                    ", new { uuid }).Peek();
+                    return new Domain.NodeDomain()
+                    {
+                        uuid = result["uuid"].As<string>(),
+                        data = result["data"].As<string>(),
+                        root = result["root"].As<string>(),
+                        parent = result["parent"].As<string>(),
+                        isBinaryleft = result["isBinaryleft"].As<string>(),
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                throw ex;
             }
         }
         // 編輯節點資料
@@ -223,6 +258,7 @@ namespace Server.lib.Repository
                 {
                     session.WriteTransaction((tx) =>
                     {
+                        var parms = new { uuid };
                         var query = @"
                             MATCH
                                 (p)<-[r1:IsChild*0..1]-(node: Node)<-[r2:IsChild*0..1]-(children: Node)
@@ -239,7 +275,13 @@ namespace Server.lib.Repository
                             FOREACH (x IN R2 | DELETE x)
                             DETACH DELETE self
                         ";
-                        tx.Run(query, new { uuid });
+                        tx.Run(query, parms);
+                        //刪除無子樹的節點
+                        tx.Run(@"
+                            MATCH (node: Node { uuid: $uuid})
+                            DETACH DELETE node
+                        ", parms);
+                        tx.Success();
                     });
                     return true;
                 }
@@ -251,12 +293,12 @@ namespace Server.lib.Repository
             }
         }
         // 搬移節點
-        public async Task<bool> MoveNode(string uuid, string newParent)
+        public async Task<bool> MoveNode(string uuid, string newParent, string isBinaryleft)
         {
             try
             {
                 await Task.Delay(0);
-                logger.LogInformation($"{uuid} {newParent}");
+                logger.LogInformation($"{uuid} {newParent} {isBinaryleft}");
                 using (var session = driver.Session())
                 {
                     session.WriteTransaction((tx) =>
@@ -269,8 +311,11 @@ namespace Server.lib.Repository
                             MATCH 
                                 (p {uuid: $newParent}), 
                                 (n {uuid: $uuid})
+                            SET 
+                                n.isBinaryleft = $isBinaryleft,
+                                n.parent = $newParent
                             CREATE (p)<-[:IsChild]-(n)
-                        ", new { uuid, newParent });
+                        ", new { uuid, newParent, isBinaryleft });
                     });
                     return true;
                 }
@@ -321,6 +366,7 @@ namespace Server.lib.Repository
                             data = c.Properties["data"].As<string>(),
                             root = c.Properties["root"].As<string>(),
                             parent = c.Properties["parent"].As<string>(),
+                            isBinaryleft = c.Properties["isBinaryleft"].As<string>(),
                         });
                     }
                     foreach (var c in relNode)
@@ -369,12 +415,14 @@ namespace Server.lib.Repository
                         var uuid = record["uuid"].As<string>();
                         var data = record["data"].As<string>();
                         var root = record["root"].As<string>();
+                        var isBinaryleft = record["isBinaryleft"].As<string>();
                         logger.LogInformation($"{uuid}|{data}|{root}");
                         result.Add(new NodeDomain()
                         {
                             uuid = uuid,
                             data = data,
                             root = root,
+                            isBinaryleft = isBinaryleft,
                         });
                     }
                 }
