@@ -160,15 +160,22 @@ namespace Server.lib.Repository
                 {
                     session.WriteTransaction((tx) =>
                     {
-                        var query = @"
+                        var parms = new { uuid };
+                        //刪除有子樹的節點
+                        tx.Run(@"
                             MATCH ()<-[r1:IsChild*0..1]-(node)<-[r2:IsChild*]-(children: Node)-[r3:IsChild*0..1]-() 
                             WHERE node.uuid = $uuid
                             FOREACH (x IN r1 | DELETE x)
                             FOREACH (x IN r2 | DELETE x)
                             FOREACH (x IN r3 | DELETE x)
                             DELETE node, children
-                        ";
-                        tx.Run(query, new { uuid });
+                        ", parms);
+                        //刪除無子樹的節點
+                        tx.Run(@"
+                            MATCH (node: Node { uuid: $uuid})
+                            DETACH DELETE node
+                        ", parms);
+                        tx.Success();
                     });
                     return true;
                 }
