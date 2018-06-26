@@ -186,14 +186,17 @@
   - 名稱：樹狀圖資料
     - Label: Tree
     - properties：
+    
       |名稱|型態|說明|
       |---|---|---|
       |uuid|字串|唯一值|
       |type|"Binary" or "Normal"|普通樹或二元樹|
       |lastUpdateDate|字串|更新時間|
+      
   - 名稱：節點資料
     - Label: Node
     - properties：
+    
       |名稱|型態|說明|
       |---|---|---|
       |uuid|字串|唯一值|
@@ -201,6 +204,7 @@
       |root|字串|樹uuid|
       |parent|字串|父節點uuid|
       |isBinaryleft|"true" or "false"|二元樹下是否為左子樹|
+      
 
 - Relationships
   - 名稱：為子節點
