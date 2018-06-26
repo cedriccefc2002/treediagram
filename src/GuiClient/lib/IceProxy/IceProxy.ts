@@ -55,17 +55,17 @@ export class Proxy {
         return (await this.getServer()).deleteTree(uuid);
     }
 
-    public async server_getChildrenCount(uuid: string) {
-        return (await this.getServer()).getChildrenCount(uuid);
-    }
+    // public async server_getChildrenCount(uuid: string) {
+    //     return (await this.getServer()).getChildrenCount(uuid);
+    // }
 
     public async server_createNode(rootUUID: string, parentUUID: string, data: string) {
         return (await this.getServer()).createNode(rootUUID, parentUUID, data);
     }
 
-    public async server_getChildrenNode(uuid: string) {
-        return (await this.getServer()).getChildrenNode(uuid);
-    }
+    // public async server_getChildrenNode(uuid: string) {
+    //     return (await this.getServer()).getChildrenNode(uuid);
+    // }
 
     public async server_updateNodeData(uuid: string, data: string) {
         return (await this.getServer()).updateNodeData(uuid, data);
