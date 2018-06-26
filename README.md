@@ -7,6 +7,8 @@
 
 ## [軟體設計文件](./doc/SDD.md)
 
+## [windows安裝文件](./script/Windows/Install.md)
+
 參考範例：
 
 - [朝陽科技大學資訊管理系-文件範例](http://www.im.cyut.edu.tw/html/project/download.htm)：[SDD](http://www.im.cyut.edu.tw/html/project/sdd.pdf)文件
