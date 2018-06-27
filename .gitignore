@@ -343,3 +343,5 @@ src/ConsoleClient/generated/*.cs
 src/GuiClient/package-lock.json
 src/GuiClient/**/*.js
 src/GuiClient/dist
+
+**/*/.~lock.*#
