@@ -56,7 +56,7 @@ namespace Server.Tests.lib.Repository
                 {
                     for (var i = 0; i < 10; i++)
                     {
-                        var status = await repository.CreateNode(tree.uuid, tree.uuid, $"node-{i}");
+                        var status = await repository.CreateNode(tree.uuid, tree.uuid, $"node-{i}", "true");
                         if (!status)
                         {
                             throw new Exception("CreateNodeError");
@@ -68,7 +68,7 @@ namespace Server.Tests.lib.Repository
                         await repository.UpdateNodeData(child.uuid, $"node UpdateNodeData");
                         for (var i = 0; i < 10; i++)
                         {
-                            var status = await repository.CreateNode(tree.uuid, child.uuid, $"node-{i}");
+                            var status = await repository.CreateNode(tree.uuid, child.uuid, $"node-{i}", "true");
                             if (!status)
                             {
                                 throw new Exception("CreateNodeError");
@@ -78,7 +78,7 @@ namespace Server.Tests.lib.Repository
                     if (children.Count > 4)
                     {
                         await repository.DeleteNodeTree(children[0].uuid);
-                        await repository.MoveNode(children[1].uuid, children[2].uuid);
+                        await repository.MoveNode(children[1].uuid, children[2].uuid, "true");
                         await repository.DeleteNode(children[3].uuid);
                     }
 
