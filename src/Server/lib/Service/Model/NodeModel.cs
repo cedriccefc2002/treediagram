@@ -1,3 +1,4 @@
+using AutoMapper;
 using Domain = Server.lib.Repository.Domain;
 namespace Server.lib.Service.Model
 {
@@ -10,31 +11,35 @@ namespace Server.lib.Service.Model
         public bool isBinaryleft { get; set; }
         public Domain.NodeDomain NodeDomain()
         {
-            return new Domain.NodeDomain
-            {
-                uuid = uuid,
-                root = root,
-                parent = parent,
-                data = data,
-                isBinaryleft = IsBinaryleft(isBinaryleft)
-            };
+            // return new Domain.NodeDomain
+            // {
+            //     uuid = uuid,
+            //     root = root,
+            //     parent = parent,
+            //     data = data,
+            //     isBinaryleft = IsBinaryleft(isBinaryleft)
+            // };
+            return Mapper.Map<Domain.NodeDomain>(this);
         }
-        public static string IsBinaryleft(bool source){
+        public static string IsBinaryleft(bool source)
+        {
             return source ? "true" : "false";
         }
-        public static bool IsBinaryleft(string source){
+        public static bool IsBinaryleft(string source)
+        {
             return (source == "true");
         }
         public static NodeModel FromDomain(Domain.NodeDomain source)
         {
-            return new NodeModel
-            {
-                uuid = source.uuid,
-                root = source.root,
-                parent = source.parent,
-                data = source.data,
-                isBinaryleft = IsBinaryleft(source.isBinaryleft),
-            };
+            // return new NodeModel
+            // {
+            //     uuid = source.uuid,
+            //     root = source.root,
+            //     parent = source.parent,
+            //     data = source.data,
+            //     isBinaryleft = IsBinaryleft(source.isBinaryleft),
+            // };
+            return Mapper.Map<NodeModel>(source);
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using AutoMapper;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
@@ -21,6 +22,15 @@ namespace Server.lib
             services.AddLogging((builder) => builder.SetMinimumLevel(LogLevel.Trace));
             serviceProvider = services.BuildServiceProvider();
             ConfigLog(ref serviceProvider);
+            AutoMapperInitialize();
+        }
+        private static void AutoMapperInitialize()
+        {
+            Mapper.Initialize(x =>
+            {
+                x.AddProfile<lib.Service.AutoMapper.NodeProfile>();
+                x.AddProfile<lib.Service.AutoMapper.NodeRelationshipProfile>();
+            });
         }
         private static void AddRepository(ref ServiceCollection services)
         {

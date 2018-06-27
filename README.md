@@ -80,6 +80,7 @@ dotnet restore
 ```
 
 - 手動新增
+
 ```sh
 dotnet new console -o src/Server
 dotnet add src/Server package zeroc.icebuilder.msbuild
@@ -93,6 +94,8 @@ dotnet add src/Server package NLog.Extensions.Logging
 dotnet add src/Server package Microsoft.Extensions.Configuration
 dotnet add src/Server package Microsoft.Extensions.Configuration.FileExtensions
 dotnet add src/Server package Microsoft.Extensions.Configuration.Json
+# AutoMapper
+dotnet add src/Server package AutoMapper
 ```
 
 ```xml
