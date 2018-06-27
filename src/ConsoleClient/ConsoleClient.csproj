@@ -5,8 +5,19 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
+  <!--SliceCompile設定-->
   <ItemGroup>
     <SliceCompile Include="../Slice/*.ice" />
+  </ItemGroup>
+  <ItemDefinitionGroup>
+    <SliceCompile>
+      <IncludeDirectories>../Slice/;.</IncludeDirectories>
+    </SliceCompile>
+  </ItemDefinitionGroup>
+
+  <!--套件-->
+  <ItemGroup>
+    <!-- zeroc.ice -->
     <PackageReference Include="zeroc.ice.net" Version="3.7.1" />
     <PackageReference Include="zeroc.icebuilder.msbuild" Version="5.0.4" />
   </ItemGroup>
