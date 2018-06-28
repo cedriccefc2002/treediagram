@@ -5,6 +5,11 @@
 [![GUI功能測試影片 2018-6-27](https://img.youtube.com/vi/FOpUedw45ek/0.jpg)
 ](https://youtu.be/FOpUedw45ek)
 
+## 簡報ppt
+
+- git [https://github.com/cedriccefc2002/treediagram-website](https://github.com/cedriccefc2002/treediagram-website)
+- 網址 [https://cedriccefc2002.github.io/treediagram-website/publish/ppt.html](https://cedriccefc2002.github.io/treediagram-website/publish/ppt.html)
+
 ## [軟體設計文件](./doc/SDD.md)
 
 ## [windows安裝文件](./script/Windows/Install.md)
