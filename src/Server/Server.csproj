@@ -31,6 +31,8 @@
     <!-- zeroc.ice -->
     <PackageReference Include="zeroc.ice.net" Version="3.7.1" />
     <PackageReference Include="zeroc.icebuilder.msbuild" Version="5.0.4" />
+    <!-- Google.Protobuf -->
+    <ProjectReference Include="..\Protos\Protos.csproj" />
   </ItemGroup>
 
   <Target Name="CopyCustomContent" AfterTargets="AfterBuild">

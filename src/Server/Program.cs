@@ -9,8 +9,11 @@ namespace Server
         {
             try
             {
-                Task task = IceService.StartIceService(args);
-                task.Wait();
+                Task task1 = IceService.StartService(args);
+                Task task2 = gRPCService.StartService(args);
+                Task.WaitAll(new Task[]{task1, task2});
+                // task2.Wait();
+                // Console.ReadKey();
             }
             catch (Exception e)
             {

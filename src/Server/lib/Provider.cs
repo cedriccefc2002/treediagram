@@ -16,6 +16,7 @@ namespace Server.lib
         {
             services = new ServiceCollection();
             AddIceBridge(ref services);
+            AddgRPCBridge(ref services);
             AddRepository(ref services);
             AddService(ref services);
             AddLogger(ref services);
@@ -44,6 +45,10 @@ namespace Server.lib
         private static void AddIceBridge(ref ServiceCollection services)
         {
             services.AddSingleton<IceBridge.Server>();
+        }
+        private static void AddgRPCBridge(ref ServiceCollection services)
+        {
+            services.AddSingleton<gRPCBridge.Server>();
         }
         private static void AddLogger(ref ServiceCollection services)
         {
