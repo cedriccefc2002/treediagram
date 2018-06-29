@@ -1,0 +1,18 @@
+// 協定版本
+syntax = "proto3";
+
+package TreeDiagram;
+
+option csharp_namespace = "TreeDiagram";
+
+message Request {
+    string uuid = 1;
+}
+
+message Empty {
+
+}
+
+service GridLogService {
+    rpc deleteTree (Request) returns (Empty);
+}

@@ -76,9 +76,29 @@ sudo apt-get install zeroc-ice-all-runtime
 - `lib/IceBridge`：提供Ice產生Api的橋接
 - `IceService.cs`：可獨立執行或嵌入`ICEbox`
 
+### 加入protobuf
+
+```sh
+cd ./src
+git submodule add https://github.com/cedriccefc2002/protobuf
+mkdir Protos
+cd Protos
+dotnet new classlib
+mkdir generated
+/home/cefc/.nuget/packages/grpc.tools/1.12.0/tools/linux_x64/protoc --plugin=protoc-gen-grpc=/home/cefc/.nuget/packages/grpc.tools/1.12.0/tools/linux_x64/grpc_csharp_plugin --csharp_out=generated --grpc_out=generated Server.proto
+```
+
+```xml
+<ItemGroup>
+    <PackageReference Include="Grpc" Version="1.12.0" />
+    <ProjectReference Include="..\protobuf\csharp\src\Google.Protobuf\Google.Protobuf.csproj" />
+  </ItemGroup>
+```
+
+
 ### Server 專案建置
 
-- 使用 dotnet 還原 
+- 使用 dotnet 還原
 
 ```sh
 dotnet restore

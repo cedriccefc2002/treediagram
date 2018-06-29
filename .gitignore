@@ -345,3 +345,4 @@ src/GuiClient/**/*.js
 src/GuiClient/dist
 
 **/*/.~lock.*#
+src/Protos/generated/*.cs
