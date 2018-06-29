@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": "ConsoleClient"
+		},
+		{
+			"path": "GuiClient"
+		},
+		{
+			"path": "protobuf"
+		},
+		{
+			"path": "Protos"
+		},
+		{
+			"path": "Server"
+		},
+		{
+			"path": "Server.Tests"
+		},
+		{
+			"path": "Slice"
+		}
+	]
+}
