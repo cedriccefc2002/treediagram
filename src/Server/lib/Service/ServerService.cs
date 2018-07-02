@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,12 +14,48 @@ namespace Server.lib.Service
         private readonly ILogger<ServerService> logger;
         private readonly EventService eventService;
         private readonly IRepository repository;
+        private readonly IList<string> Clients = new List<string>();
+        private readonly IDictionary<string, string> TreeEditLock = new Dictionary<string, string>();
+        private readonly IDictionary<string, string> ClientEditLock = new Dictionary<string, string>();
         public ServerService(ILogger<ServerService> logger)
         {
             this.logger = logger;
             eventService = lib.Provider.serviceProvider.GetRequiredService<Service.EventService>();
             repository = lib.Provider.serviceProvider.GetRequiredService<IRepository>();
+            eventService.evtClientConnect += async uuid =>
+            {
+                await Task.Yield();
+                Clients.Add(uuid);
+            };
+            eventService.evtClientDisConnect += async clientUUID =>
+            {
+                await Task.Yield();
+                var treeUUID = "";
+                if (ClientEditLock.TryGetValue(clientUUID, out treeUUID))
+                {
+                    ClientEditLock.Remove(clientUUID);
+                    TreeEditLock.Remove(treeUUID);
+                }
+                Clients.Remove(clientUUID);
+            };
+            eventService.evtTreeEditLock += async (string treeUUID, string clientUUID) =>
+            {
+                await Task.Yield();
+                TreeEditLock.Add(treeUUID, clientUUID);
+                ClientEditLock.Add(clientUUID, treeUUID);
+            };
+            eventService.evtTreeEditRelease += async (string treeUUID) =>
+            {
+                await Task.Yield();
+                var clientUUID = "";
+                if (TreeEditLock.TryGetValue(treeUUID, out clientUUID))
+                {
+                    ClientEditLock.Remove(clientUUID);
+                }
+                TreeEditLock.Remove(treeUUID);
+            };
         }
+
         public async Task<bool> Status()
         {
             return await repository.Status();
@@ -29,7 +66,33 @@ namespace Server.lib.Service
             var t = eventService.DoTreeListUpdate();
             return result;
         }
-
+        private async Task<bool> IsFree(string treeUUID, string clientUUID)
+        {
+            await Task.Yield();
+            var lockClientUUID = "";
+            if (TreeEditLock.TryGetValue(treeUUID, out lockClientUUID))
+            {
+                return lockClientUUID == clientUUID;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        private async Task<bool> DoTreeUpdate(string clientUUID, string treeUUID, Func<Task<bool>> process)
+        {
+            if (await IsFree(clientUUID, treeUUID))
+            {
+                await eventService.DoTreeEditLock(clientUUID, treeUUID);
+                var result = await process();
+                await eventService.DoTreeEditRelease(treeUUID);
+                return result;
+            }
+            else
+            {
+                return false;
+            }
+        }
         public async Task<List<Model.TreeModel>> ListAllTrees()
         {
             return (await repository.ListAllTrees()).Select(a => Model.TreeModel.FromDomain(a)).ToList();
@@ -55,39 +118,45 @@ namespace Server.lib.Service
         {
             return await repository.GetChildrenCount(uuid);
         }
-        public async Task<bool> CreateNode(string rootUUID, string parentUUID, string data)
+        public async Task<bool> CreateNode(string clientUUID, string rootUUID, string parentUUID, string data)
         {
-            bool result = false;
-            var root = await GetTreeByUUID(rootUUID);
-            if (root.type == TreeType.Binary)
+            return await DoTreeUpdate(clientUUID, rootUUID, async () =>
             {
-                var childern = await repository.GetChildrenNode(parentUUID);
-                if (childern.Count >= 2)
+                bool result = false;
+                if (await IsFree(clientUUID, rootUUID))
                 {
-                    result = false;
+                    var root = await GetTreeByUUID(rootUUID);
+                    if (root.type == TreeType.Binary)
+                    {
+                        var childern = await repository.GetChildrenNode(parentUUID);
+                        if (childern.Count >= 2)
+                        {
+                            result = false;
+                        }
+                        else if (childern.Count == 1)
+                        {
+                            var IsBinaryleft = NodeModel.IsBinaryleft(childern.First().isBinaryleft);
+                            await repository.CreateNode(rootUUID, parentUUID, data, NodeModel.IsBinaryleft(!IsBinaryleft));
+                            result = true;
+                        }
+                        else
+                        {
+                            await repository.CreateNode(rootUUID, parentUUID, data, NodeModel.IsBinaryleft(true));
+                            result = true;
+                        }
+                    }
+                    else
+                    {
+                        await repository.CreateNode(rootUUID, parentUUID, data, NodeModel.IsBinaryleft(false));
+                        result = true;
+                    }
+                    if (result)
+                    {
+                        var t = eventService.DoTreeEditFinish(rootUUID);
+                    }
                 }
-                else if (childern.Count == 1)
-                {
-                    var IsBinaryleft = NodeModel.IsBinaryleft(childern.First().isBinaryleft);
-                    await repository.CreateNode(rootUUID, parentUUID, data, NodeModel.IsBinaryleft(!IsBinaryleft));
-                    result = true;
-                }
-                else
-                {
-                    await repository.CreateNode(rootUUID, parentUUID, data, NodeModel.IsBinaryleft(true));
-                    result = true;
-                }
-            }
-            else
-            {
-                await repository.CreateNode(rootUUID, parentUUID, data, NodeModel.IsBinaryleft(false));
-                result = true;
-            }
-            if (result)
-            {
-                var t = eventService.DoTreeUpdate(rootUUID);
-            }
-            return result;
+                return result;
+            });
         }
 
         public async Task<List<Model.NodeModel>> GetChildrenNode(string uuid)
@@ -95,89 +164,101 @@ namespace Server.lib.Service
             return (await repository.GetChildrenNode(uuid)).Select(a => Model.NodeModel.FromDomain(a)).ToList();
         }
 
-        public async Task<bool> UpdateNodeData(string uuid, string data)
+        public async Task<bool> UpdateNodeData(string clientUUID, string rootUUID, string data)
         {
-            var result = (await repository.UpdateNodeData(uuid, data));
-            var t = eventService.DoNodeUpdate(uuid, data);
-            return result;
+            return await DoTreeUpdate(clientUUID, rootUUID, async () =>
+               {
+                   var result = (await repository.UpdateNodeData(rootUUID, data));
+                   var t = eventService.DoNodeUpdate(rootUUID, data, new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds());
+                   return result;
+               });
         }
 
-        public async Task<bool> DeleteNodeTree(string uuid)
+        public async Task<bool> DeleteNodeTree(string clientUUID, string rootUUID)
         {
-            var node = await GetNodeByUUID(uuid);
-            var result = await repository.DeleteNodeTree(uuid);
-            var t = eventService.DoTreeUpdate(node.root);
-            return result;
+            return await DoTreeUpdate(clientUUID, rootUUID, async () =>
+               {
+                   var node = await GetNodeByUUID(rootUUID);
+                   var result = await repository.DeleteNodeTree(rootUUID);
+                   var t = eventService.DoTreeEditFinish(node.root);
+                   return result;
+               });
         }
 
-        public async Task<bool> MoveNode(string uuid, string newParent)
+        public async Task<bool> MoveNode(string clientUUID, string rootUUID, string newParent)
         {
-            var node = await GetNodeByUUID(uuid);
-            var root = await GetTreeByUUID(node.root);
-            bool result = false;
-            if (root.type == TreeType.Binary)
-            {
-                var count = await GetChildrenCount(newParent);
-                if (count >= 2)
-                {
-                    result = false;
-                }
-                else if (count == 1)
-                {
-                    await repository.MoveNode(uuid, newParent, NodeModel.IsBinaryleft(false));
-                    result = true;
-                }
-                else
-                {
-                    await repository.MoveNode(uuid, newParent, NodeModel.IsBinaryleft(true));
-                    result = true;
-                }
-            }
-            else
-            {
-                await repository.MoveNode(uuid, newParent, NodeModel.IsBinaryleft(false));
-                result = true;
-            }
-            if (result)
-            {
-                var t = eventService.DoTreeUpdate(root.uuid);
-            }
-            return result;
+            return await DoTreeUpdate(clientUUID, rootUUID, async () =>
+               {
+                   var node = await GetNodeByUUID(rootUUID);
+                   var root = await GetTreeByUUID(node.root);
+                   bool result = false;
+                   if (root.type == TreeType.Binary)
+                   {
+                       var count = await GetChildrenCount(newParent);
+                       if (count >= 2)
+                       {
+                           result = false;
+                       }
+                       else if (count == 1)
+                       {
+                           await repository.MoveNode(rootUUID, newParent, NodeModel.IsBinaryleft(false));
+                           result = true;
+                       }
+                       else
+                       {
+                           await repository.MoveNode(rootUUID, newParent, NodeModel.IsBinaryleft(true));
+                           result = true;
+                       }
+                   }
+                   else
+                   {
+                       await repository.MoveNode(rootUUID, newParent, NodeModel.IsBinaryleft(false));
+                       result = true;
+                   }
+                   if (result)
+                   {
+                       var t = eventService.DoTreeEditFinish(root.uuid);
+                   }
+                   return result;
+               });
         }
 
-        public async Task<bool> DeleteNode(string uuid)
+        public async Task<bool> DeleteNode(string clientUUID, string rootUUID)
         {
-            var node = await GetNodeByUUID(uuid);
-            var root = await GetTreeByUUID(node.root);
-            bool result = false;
-            if (root.type == TreeType.Binary)
-            {
-                var count = (await GetChildrenCount(node.uuid)) + (await GetChildrenCount(node.parent));
-                if (count > 2)
-                {
-                    result = false;
-                }
-                else
-                {
-                    var childern = await repository.GetChildrenNode(node.uuid);
-                    foreach (var child in childern)
-                    {
-                        await repository.MoveNode(uuid, node.parent, NodeModel.IsBinaryleft(node.isBinaryleft));
-                    }
-                    await repository.DeleteNode(uuid);
-                    result = true;
-                }
-            }
-            else
-            {
-                await repository.DeleteNode(uuid);
-                result = true;
-            }
-            if (result)
-            {
-                var t = eventService.DoTreeUpdate(root.uuid);
-            }
-            return result;
+            return await DoTreeUpdate(clientUUID, rootUUID, async () =>
+               {
+                   var node = await GetNodeByUUID(rootUUID);
+                   var root = await GetTreeByUUID(node.root);
+                   bool result = false;
+                   if (root.type == TreeType.Binary)
+                   {
+                       var count = (await GetChildrenCount(node.uuid)) + (await GetChildrenCount(node.parent));
+                       if (count > 2)
+                       {
+                           result = false;
+                       }
+                       else
+                       {
+                           var childern = await repository.GetChildrenNode(node.uuid);
+                           foreach (var child in childern)
+                           {
+                               await repository.MoveNode(rootUUID, node.parent, NodeModel.IsBinaryleft(node.isBinaryleft));
+                           }
+                           await repository.DeleteNode(rootUUID);
+                           result = true;
+                       }
+                   }
+                   else
+                   {
+                       await repository.DeleteNode(rootUUID);
+                       result = true;
+                   }
+                   if (result)
+                   {
+                       var t = eventService.DoTreeEditFinish(root.uuid);
+                   }
+                   return result;
+               });
         }
         public async Task<TreeViewModel> GetNodeView(string uuid)
         {

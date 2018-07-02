@@ -14,17 +14,19 @@ namespace Server.lib.IceBridge
 {
     public class Server : TreeDiagram.ServerDisp_
     {
+        private Service.EventService eventService;
         private readonly ILogger<Server> logger;
         private readonly IList<ServerEventPrxHelper> clients = new List<ServerEventPrxHelper>();
-
         private readonly Service.IServerService service;
         public Server(ILogger<Server> logger)
         {
             this.logger = logger;
             service = lib.Provider.serviceProvider.GetRequiredService<Service.IServerService>();
-            var eventService = lib.Provider.serviceProvider.GetRequiredService<Service.EventService>();
+            eventService = lib.Provider.serviceProvider.GetRequiredService<Service.EventService>();
             eventService.evtTreeListUpdate += new Service.TreeListUpdateDelegate(TreeListUpdateHandler);
-            eventService.evtTreeUpdate += new Service.TreeUpdateDelegate(TreeUpdateHandler);
+            eventService.evtTreeEditLock += new Service.TreeEditLockDelegate(TreeEditLockHandler);
+            eventService.evtTreeEditRelease += new Service.TreeEditReleaseDelegate(TreeEditReleaseHandler);
+            eventService.evtTreeEditFinish += new Service.TreeEditFinishDelegate(TreeEditFinishHandler);
             eventService.evtNodeUpdate += new Service.NodeUpdateDelegate(NodeUpdateHandler);
         }
 
@@ -71,10 +73,10 @@ namespace Server.lib.IceBridge
             return service.GetChildrenCount(uuid).Result;
         }
 
-        public override void createNode(string rootUUID, string parentUUID, string data, Current current)
+        public override void createNode(string clientUUID, string rootUUID, string parentUUID, string data, Current current)
         {
             logger.LogInformation($"{rootUUID}|{parentUUID}|{data}");
-            service.CreateNode(rootUUID, parentUUID, data).Wait();
+            service.CreateNode(clientUUID, rootUUID, parentUUID, data).Wait();
         }
 
         public override Node[] getChildrenNode(string uuid, Current current)
@@ -90,28 +92,28 @@ namespace Server.lib.IceBridge
             }).ToArray();
         }
 
-        public override void updateNodeData(string uuid, string data, Current current)
+        public override void updateNodeData(string clientUUID, string uuid, string data, Current current)
         {
             logger.LogInformation($"{uuid}|{data}");
-            service.UpdateNodeData(uuid, data).Wait();
+            service.UpdateNodeData(clientUUID, uuid, data).Wait();
         }
 
-        public override void deleteNodeTree(string uuid, Current current)
+        public override void deleteNodeTree(string clientUUID, string uuid, Current current)
         {
             logger.LogInformation($"{uuid}");
-            service.DeleteNodeTree(uuid).Wait();
+            service.DeleteNodeTree(clientUUID, uuid).Wait();
         }
 
-        public override void moveNode(string uuid, string newParent, Current current)
+        public override void moveNode(string clientUUID, string uuid, string newParent, Current current)
         {
             logger.LogInformation($"{uuid}");
-            service.MoveNode(uuid, newParent).Wait();
+            service.MoveNode(clientUUID, uuid, newParent).Wait();
         }
 
-        public override void deleteNode(string uuid, Current current)
+        public override void deleteNode(string clientUUID, string uuid, Current current)
         {
             logger.LogInformation($"{uuid}");
-            service.DeleteNode(uuid).Wait();
+            service.DeleteNode(clientUUID, uuid).Wait();
         }
 
         public override TreeView getNodeView(string uuid, Current current)
@@ -155,22 +157,43 @@ namespace Server.lib.IceBridge
             }
             removeList.ForEach(c => clients.Remove(c));
         }
-        private void TreeListUpdateHandler()
+        private async Task TreeListUpdateHandler()
         {
+            await Task.Yield();
             ClientEventHandler(async c => await c.TreeListUpdateAsync());
         }
-        private void TreeUpdateHandler(string uuid)
+        private async Task TreeEditReleaseHandler(string uuid)
         {
-            ClientEventHandler(async c => await c.TreeUpdateAsync(uuid));
+            await Task.Yield();
+            ClientEventHandler(async c => await c.TreeEditReleaseAsync(uuid));
         }
-        private void NodeUpdateHandler(string uuid, string data)
+        private async Task TreeEditLockHandler(string treeUUID, string clientUUID)
         {
-            ClientEventHandler(async c => await c.NodeUpdateAsync(uuid, data));
+            await Task.Yield();
+            ClientEventHandler(async c => await c.TreeEditLockAsync(treeUUID, clientUUID));
         }
-        public override void initEvent(ServerEventPrx serverEvent, Current current)
+        private async Task TreeEditFinishHandler(string uuid)
+        {
+            await Task.Yield();
+            ClientEventHandler(async c => await c.TreeEditFinishAsync(uuid));
+        }
+        private async Task NodeUpdateHandler(string uuid, string data, long timestamp)
+        {
+            await Task.Yield();
+            ClientEventHandler(async c => await c.NodeUpdateAsync(uuid, data, timestamp));
+        }
+        public override void initEvent(string clientUUID, ServerEventPrx serverEvent, Current current)
         {
             clients.Add(((ServerEventPrxHelper)serverEvent));
-            var service = lib.Provider.serviceProvider.GetRequiredService<Service.EventService>();
+            eventService.DoClientConnect(clientUUID).Wait();
+            current.con.setCloseCallback(async (con) =>
+            {
+                await Task.Yield();
+                logger.LogInformation($"{serverEvent.GetHashCode()}");
+                clients.Remove((ServerEventPrxHelper)serverEvent);
+                await eventService.DoClientDisConnect(clientUUID);
+            });
+            // var service = lib.Provider.serviceProvider.GetRequiredService<Service.EventService>();
             // var task = service.DoTreeListUpdate();
             // Task.Run(async () =>
             // {
@@ -188,7 +211,7 @@ namespace Server.lib.IceBridge
             //         }
             //     }
             // });
-            logger.LogInformation($"{serverEvent.ice_getAdapterId()}");
+            logger.LogInformation($"{serverEvent.GetHashCode()}");
         }
     }
 }

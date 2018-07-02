@@ -11,9 +11,13 @@ module TreeDiagram
         // 2-1 樹狀圖清單更新 發布
         void TreeListUpdate(); 
         // 2-2 樹狀圖資料更新 發布
-        void TreeUpdate(string uuid);
+        void TreeEditLock(string treeUUID, string clientUUID);
+        void TreeEditRelease(string treeUUID);
+        void TreeEditFinish(string treeUUID);
         // 2-3 節點資料更新 發布
-        void NodeUpdate(string uuid, string data); 
+        void NodeUpdate(string uuid, string data ,long timestamp); 
+        // 2-4 節點資料更新 發布
+        
     };
 
     interface Server
@@ -33,19 +37,19 @@ module TreeDiagram
         // 管理節點
         long getChildrenCount(string uuid);
         // 1-2-1 新增節點
-        idempotent void createNode(string rootUUID, string parentUUID, string data);
+        idempotent void createNode(string clientUUID, string rootUUID, string parentUUID, string data);
         Nodes getChildrenNode(string uuid);
         // 1-2-2 更新節點資料
-        idempotent void updateNodeData(string uuid, string data);
+        idempotent void updateNodeData(string clientUUID, string uuid, string data);
         // 1-2-3 刪除節點與其子樹
-        idempotent void deleteNodeTree(string uuid);
+        idempotent void deleteNodeTree(string clientUUID, string uuid);
         // 1-2-4 移動節點與子樹
-        idempotent void moveNode(string uuid, string newParent);
+        idempotent void moveNode(string clientUUID, string uuid, string newParent);
         // 1-2-5 刪除節點保留子樹
-        idempotent void deleteNode(string uuid);
+        idempotent void deleteNode(string clientUUID, string uuid);
         // 1-2-6 取得所有節點資料
         TreeView getNodeView(string uuid);
         // 傳送client EventHandler
-        void initEvent(ServerEvent* event);
+        void initEvent(string clientUUID, ServerEvent* event);
     }
 }

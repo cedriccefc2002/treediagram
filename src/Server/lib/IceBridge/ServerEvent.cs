@@ -26,13 +26,23 @@ namespace Server.lib.IceBridge
         {
             this.logger.LogInformation("");
         }
-        public override void TreeUpdate(string uuid, Current context)
+        public override void TreeEditLock(string treeUUID, string clientUUID, Current context)
         {
-            this.logger.LogInformation(uuid);
+            this.logger.LogInformation($"{treeUUID} {clientUUID}");
         }
-        public override void NodeUpdate(string uuid, string data, Current context)
+        public override void TreeEditRelease(string treeUUID, Current context)
         {
-            this.logger.LogInformation($"{uuid}:{data}");
+            this.logger.LogInformation(treeUUID);
         }
+        public override void TreeEditFinish(string treeUUID, Current context)
+        {
+            this.logger.LogInformation(treeUUID);
+        }
+        public override void NodeUpdate(string uuid, string data, long timestamp, Current context)
+        {
+            this.logger.LogInformation($"{uuid}:{data}:{timestamp.ToString()}");
+        }
+
+        
     }
 }

@@ -13,6 +13,7 @@ namespace Server
     // 相容 IceBox
     public class IceClient
     {
+        private string uuid = Guid.NewGuid().ToString();
         private Ice.ObjectAdapter adapter;
         private Ice.Communicator communicator;
 
@@ -41,7 +42,7 @@ namespace Server
             serverEvent = ServerEventPrxHelper.uncheckedCast(
                 adapter.addWithUUID(
                     lib.Provider.serviceProvider.GetRequiredService<lib.IceBridge.ServerEvent>()));
-            _server.initEvent(serverEvent);
+            _server.initEvent(uuid, serverEvent);
         }
     }
 }

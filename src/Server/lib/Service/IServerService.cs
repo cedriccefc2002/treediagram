@@ -20,15 +20,15 @@ namespace Server.lib.Service
         Task<TreeModel> GetTreeByUUID(string uuid);
         Task<NodeModel> GetNodeByUUID(string uuid);
         Task<uint> GetChildrenCount(string uuid);
-        Task<bool> CreateNode(string rootUUID, string parentUUID, string data);
+        Task<bool> CreateNode(string clientUUID, string rootUUID, string parentUUID, string data);
 
         Task<List<Model.NodeModel>> GetChildrenNode(string uuid);
-        Task<bool> UpdateNodeData(string uuid, string data);
+        Task<bool> UpdateNodeData(string clientUUID, string uuid, string data);
 
-        Task<bool> DeleteNodeTree(string uuid);
-        Task<bool> MoveNode(string uuid, string newParent);
+        Task<bool> DeleteNodeTree(string clientUUID, string uuid);
+        Task<bool> MoveNode(string clientUUID, string uuid, string newParent);
 
-        Task<bool> DeleteNode(string uuid);
+        Task<bool> DeleteNode(string clientUUID, string uuid);
         Task<TreeViewModel> GetNodeView(string uuid);
     }
 }
