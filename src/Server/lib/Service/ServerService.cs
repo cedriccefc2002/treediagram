@@ -8,7 +8,7 @@ using Server.lib.Repository;
 using Server.lib.Service.Model;
 namespace Server.lib.Service
 {
-    public class ServerService
+    public class ServerService : IServerService
     {
         private readonly ILogger<ServerService> logger;
         private readonly EventService eventService;

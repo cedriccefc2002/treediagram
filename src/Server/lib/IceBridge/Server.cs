@@ -17,11 +17,11 @@ namespace Server.lib.IceBridge
         private readonly ILogger<Server> logger;
         private readonly IList<ServerEventPrxHelper> clients = new List<ServerEventPrxHelper>();
 
-        private readonly Service.ServerService service;
+        private readonly Service.IServerService service;
         public Server(ILogger<Server> logger)
         {
             this.logger = logger;
-            service = lib.Provider.serviceProvider.GetRequiredService<Service.ServerService>();
+            service = lib.Provider.serviceProvider.GetRequiredService<Service.IServerService>();
             var eventService = lib.Provider.serviceProvider.GetRequiredService<Service.EventService>();
             eventService.evtTreeListUpdate += new Service.TreeListUpdateDelegate(TreeListUpdateHandler);
             eventService.evtTreeUpdate += new Service.TreeUpdateDelegate(TreeUpdateHandler);

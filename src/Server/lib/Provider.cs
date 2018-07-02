@@ -39,7 +39,7 @@ namespace Server.lib
         }
         private static void AddService(ref ServiceCollection services)
         {
-            services.AddSingleton<Service.ServerService>();
+            services.AddSingleton<Service.IServerService, Service.ServerService>();
             services.AddSingleton<Service.EventService>();
         }
         private static void AddIceBridge(ref ServiceCollection services)
