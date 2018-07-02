@@ -12,12 +12,12 @@ namespace Server.lib.Service
     {
         private readonly ILogger<ServerService> logger;
         private readonly EventService eventService;
-        private readonly Neo4jRepository repository;
+        private readonly IRepository repository;
         public ServerService(ILogger<ServerService> logger)
         {
             this.logger = logger;
             eventService = lib.Provider.serviceProvider.GetRequiredService<Service.EventService>();
-            repository = lib.Provider.serviceProvider.GetRequiredService<Neo4jRepository>();
+            repository = lib.Provider.serviceProvider.GetRequiredService<IRepository>();
         }
         public async Task<bool> Status()
         {

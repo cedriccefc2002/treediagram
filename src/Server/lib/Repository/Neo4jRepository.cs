@@ -9,7 +9,7 @@ using Server.lib.Repository.Domain;
 
 namespace Server.lib.Repository
 {
-    public class Neo4jRepository
+    public class Neo4jRepository : IRepository
     {
         private readonly ILogger<Neo4jRepository> logger;
         private readonly IDriver driver;

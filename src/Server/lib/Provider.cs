@@ -35,7 +35,7 @@ namespace Server.lib
         }
         private static void AddRepository(ref ServiceCollection services)
         {
-            services.AddSingleton<Repository.Neo4jRepository>();
+            services.AddSingleton<Repository.IRepository, Repository.Neo4jRepository>();
         }
         private static void AddService(ref ServiceCollection services)
         {
