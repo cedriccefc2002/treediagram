@@ -13,6 +13,7 @@ namespace Server
     public class IceService : IceBox.Service, IDisposable
     {
         private Ice.ObjectAdapter adapter;
+        private IceClient client = new IceClient();
         public async static Task StartService(string[] args)
         {
             Console.WriteLine("StartIceServer");
@@ -24,6 +25,7 @@ namespace Server
             {
                 iceService.start(config.name, communicator, args);
                 Console.WriteLine("Ice server listening");
+                await iceService.client.Connect(args);
                 await Task.Factory.StartNew(() =>
                 {
                     communicator.waitForShutdown();

@@ -45,6 +45,7 @@ namespace Server.lib
         private static void AddIceBridge(ref ServiceCollection services)
         {
             services.AddSingleton<IceBridge.Server>();
+            services.AddSingleton<IceBridge.ServerEvent>();
         }
         private static void AddgRPCBridge(ref ServiceCollection services)
         {

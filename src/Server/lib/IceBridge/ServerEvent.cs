@@ -24,15 +24,15 @@ namespace Server.lib.IceBridge
 
         public override void TreeListUpdate(Current context)
         {
-
+            this.logger.LogInformation("");
         }
         public override void TreeUpdate(string uuid, Current context)
         {
-
+            this.logger.LogInformation(uuid);
         }
         public override void NodeUpdate(string uuid, string data, Current context)
         {
-
+            this.logger.LogInformation($"{uuid}:{data}");
         }
     }
 }
