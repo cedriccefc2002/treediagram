@@ -18,17 +18,17 @@ namespace Server.lib.Service
         }
         public async Task DoTreeListUpdate()
         {
-            await Task.Delay(0);
+            await Task.Yield();
             evtTreeListUpdate();
         }
         public async Task DoTreeUpdate(string uuid)
         {
-            await Task.Delay(0);
+            await Task.Yield();
             evtTreeUpdate(uuid);
         }
         public async Task DoNodeUpdate(string uuid, string data)
         {
-            await Task.Delay(0);
+            await Task.Yield();
             evtNodeUpdate(uuid, data);
         }
     }

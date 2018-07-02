@@ -13,7 +13,7 @@ namespace Server
     {
         public async static Task StartService(string[] args)
         {
-            await Task.Delay(0);
+            await Task.Yield();
             var provider = lib.Provider.serviceProvider;
             var port = 3000;
             Grpc.Core.Server server = new Grpc.Core.Server

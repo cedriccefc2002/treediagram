@@ -16,7 +16,7 @@
 //     }
 //     private async Task<string> saveDataAsync(string message)
 //     {
-//         await Task.Delay(0);
+//         await Task.Yield();
 //         using (var session = _driver.Session())
 //         {
 //             // 使用`async function`+`WriteTransaction`可以運作
@@ -32,7 +32,7 @@
 //             // 使用`async function`+`WriteTransactionAsync`會導致**Block**無回應
 //             // var result = await session.WriteTransactionAsync(async (tx) =>
 //             //     {
-//             //         await Task.Delay(0);
+//             //         await Task.Yield();
 //             //         var result1 = await tx.RunAsync(@"
 //             //             CREATE (a:Greeting) SET a.message = $message 
 //             //             RETURN a.message + ', from node ' + id(a)
@@ -54,12 +54,12 @@
 //         // 使用`Task.Run`+`WriteTransactionAsync`可以運作
 //         // Task<string> task = Task<string>.Run(async () =>
 //         // {
-//         //     await Task.Delay(0);
+//         //     await Task.Yield();
 //         //     using (var session = _driver.Session())
 //         //     {
 //         //         var result = await session.WriteTransactionAsync(async (tx) =>
 //         //         {
-//         //             await Task.Delay(0);
+//         //             await Task.Yield();
 //         //             var result1 = await tx.RunAsync(@"
 //         //                 CREATE (a:Greeting) SET a.message = $message 
 //         //                 RETURN a.message + ', from node ' + id(a)
@@ -75,7 +75,7 @@
 //         // 使用`Task.Run`+`WriteTransaction`可以運作
 //         // Task<string> task = Task<string>.Run(async () =>
 //         // {
-//         //     await Task.Delay(0);
+//         //     await Task.Yield();
 //         //     using (var session = _driver.Session())
 //         //     {
 //         //         var result = session.WriteTransaction((tx) =>

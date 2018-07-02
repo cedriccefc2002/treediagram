@@ -17,7 +17,7 @@ namespace Server
         public async static Task StartService(string[] args)
         {
             Console.WriteLine("StartIceServer");
-            await Task.Delay(0);
+            await Task.Yield();
             var config = Config.IceAdapterConfig.Config;
             Console.WriteLine($"IceServer.name = \"{config.name}\"");
             using (Ice.Communicator communicator = Ice.Util.initialize(ref args))

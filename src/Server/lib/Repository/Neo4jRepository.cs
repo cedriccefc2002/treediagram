@@ -85,7 +85,7 @@ namespace Server.lib.Repository
         {
             try
             {
-                await Task.Delay(0);
+                await Task.Yield();
                 using (var session = driver.Session())
                 {
                     var uuid = Guid.NewGuid().ToString();
@@ -124,7 +124,7 @@ namespace Server.lib.Repository
         }
         public async Task<NodeDomain> GetNodeByUUID(string uuid)
         {
-            await Task.Delay(0);
+            await Task.Yield();
             try
             {
                 logger.LogInformation($"{uuid}");
@@ -161,7 +161,7 @@ namespace Server.lib.Repository
         {
             try
             {
-                await Task.Delay(0);
+                await Task.Yield();
                 logger.LogInformation($"{uuid}|{data}");
                 using (var session = driver.Session())
                 {
@@ -189,7 +189,7 @@ namespace Server.lib.Repository
         {
             try
             {
-                await Task.Delay(0);
+                await Task.Yield();
                 logger.LogInformation($"{uuid}");
                 using (var session = driver.Session())
                 {
@@ -226,7 +226,7 @@ namespace Server.lib.Repository
         {
             try
             {
-                await Task.Delay(0);
+                await Task.Yield();
                 using (var session = driver.Session())
                 {
                     var cursor = session.Run(@"
@@ -252,7 +252,7 @@ namespace Server.lib.Repository
         {
             try
             {
-                await Task.Delay(0);
+                await Task.Yield();
                 logger.LogInformation($"{uuid}");
                 using (var session = driver.Session())
                 {
@@ -297,7 +297,7 @@ namespace Server.lib.Repository
         {
             try
             {
-                await Task.Delay(0);
+                await Task.Yield();
                 logger.LogInformation($"{uuid} {newParent} {isBinaryleft}");
                 using (var session = driver.Session())
                 {
@@ -331,7 +331,7 @@ namespace Server.lib.Repository
         {
             try
             {
-                await Task.Delay(0);
+                await Task.Yield();
                 logger.LogInformation($"{root}");
                 using (var session = driver.Session())
                 {
@@ -393,7 +393,7 @@ namespace Server.lib.Repository
         }
         public async Task<List<NodeDomain>> GetChildrenNode(string parent)
         {
-            await Task.Delay(0);
+            await Task.Yield();
             var result = new List<NodeDomain>();
             try
             {
@@ -440,7 +440,7 @@ namespace Server.lib.Repository
         {
             try
             {
-                await Task.Delay(0);
+                await Task.Yield();
                 using (var session = driver.Session())
                 {
                     session.WriteTransaction((tx) =>
@@ -479,7 +479,7 @@ namespace Server.lib.Repository
         {
             try
             {
-                await Task.Delay(0);
+                await Task.Yield();
                 using (var session = driver.Session())
                 {
                     var id = session.WriteTransaction((tx) =>
@@ -510,7 +510,7 @@ namespace Server.lib.Repository
         }
         public async Task<TreeDomain> GetTreeByUUID(string uuid)
         {
-            await Task.Delay(0);
+            await Task.Yield();
             try
             {
                 logger.LogInformation($"{uuid}");
@@ -540,7 +540,7 @@ namespace Server.lib.Repository
         }
         public async Task<IList<TreeDomain>> ListAllTrees()
         {
-            await Task.Delay(0);
+            await Task.Yield();
             var result = new List<TreeDomain>();
             try
             {
@@ -578,7 +578,7 @@ namespace Server.lib.Repository
         {
             try
             {
-                await Task.Delay(0);
+                await Task.Yield();
                 using (var session = driver.Session())
                 {
                     var id = session.WriteTransaction((tx) =>
@@ -609,7 +609,7 @@ namespace Server.lib.Repository
         {
             try
             {
-                await Task.Delay(0);
+                await Task.Yield();
                 using (var session = driver.Session())
                 {
                     var id = session.WriteTransaction((tx) =>
@@ -640,7 +640,7 @@ namespace Server.lib.Repository
         {
             try
             {
-                await Task.Delay(0);
+                await Task.Yield();
                 using (var session = driver.Session())
                 {
                     var cursor = session.Run(@"RETURN datetime()");

@@ -31,7 +31,7 @@ namespace Server
 
         public async Task Connect(string[] args)
         {
-            await Task.Delay(0);
+            await Task.Yield();
             communicator = Ice.Util.initialize(ref args);
             Ice.Identity id = new Ice.Identity();
             var proxy = communicator.stringToProxy("Server:default -h localhost -p 10000");
