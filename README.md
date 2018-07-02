@@ -74,7 +74,31 @@ sudo apt-get install zeroc-ice-all-runtime
 - `lib/Service`： 提供邏輯判斷程序
 - `lib/Service/Model`：**Service**產生的資料或呼叫的變數型態
 - `lib/IceBridge`：提供Ice產生Api的橋接
+- `lib/Provider.cs`： 層與層之間的相依性注入
 - `IceService.cs`：可獨立執行或嵌入`ICEbox`
+
+### Dependency Injection
+
+- 建立 IRepository 介面
+- Neo4jRepository 實做 IRepository
+- `lib/Provider.cs` 設定相依性
+
+    ```cs
+    services.AddSingleton<Repository.IRepository, Repository.Neo4jRepository>();
+    ```
+- `lib/Service/ServerService.cs` 使用 **IRepository** 介面
+
+    ```cs
+    private readonly IRepository repository;
+    public ServerService()
+    {
+        repository = lib.Provider.serviceProvider.GetRequiredService<IRepository>();
+    }
+    public async Task<bool> Status()
+    {
+        return await repository.Status();
+    }
+    ```
 
 ### 加入protobuf
 
