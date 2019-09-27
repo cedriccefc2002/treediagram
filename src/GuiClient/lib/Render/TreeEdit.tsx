@@ -125,11 +125,11 @@ export class TreeEdit extends React.Component<ITreeEditProps, ITreeListState> {
                             },
                             leaves: {
                                 label: {
-                                    normal: {
-                                        position: "right",
-                                        verticalAlign: "middle",
-                                        align: "left",
-                                    },
+                                    // normal: {
+                                    //     position: "right",
+                                    //     verticalAlign: "middle",
+                                    //     align: "left",
+                                    // },
                                 },
                             },
                             expandAndCollapse: true,
